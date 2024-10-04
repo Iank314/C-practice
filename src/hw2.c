@@ -5,7 +5,6 @@
 
 #include "hw2.h"
 
-// Extract bits from a given value
 unsigned int extract_bits(unsigned int value, int start, int count) 
 {
     unsigned int mask = (1 << count) - 1;
@@ -14,28 +13,34 @@ unsigned int extract_bits(unsigned int value, int start, int count)
 
 void print_packet(unsigned int packet[]) 
 {
-    int packet_type = extract_bits(packet[0], 24, 8);
-    int length = extract_bits(packet[0], 0, 8);
-    int address = packet[2] >> 2; 
-    
-    int requester_id = extract_bits(packet[1], 0, 16);
-    int tag = extract_bits(packet[1], 16, 8);
-    int last_be = extract_bits(packet[1], 28, 4);
-    int first_be = extract_bits(packet[1], 24, 4);
-    
+    int packet_type = (packet[0] >> 24) & 0xFF;
+
+    int length = packet[0] & 0xFF;
+
+    unsigned int address = (packet[2] >> 2) & 0x3FFFFFFF;
+
+    int requester_id = packet[1] & 0xFFFF;
+
+    int tag = (packet[1] >> 16) & 0xFF;
+
+    int last_be = (packet[1] >> 28) & 0xF;
+
+    int first_be = (packet[1] >> 24) & 0xF;
+
+
     printf("%d\n", packet_type == 0x40 ? 1 : 0);  
-    printf("%d\n", address);                      
-    printf("%d\n", length);                      
+    printf("%d\n", address);                     
+    printf("%d\n", length);                       
     printf("%d\n", requester_id);                 
     printf("%d\n", tag);                          
     printf("%d\n", last_be);                      
-    printf("%d\n", first_be);                    
-
+    printf("%d\n", first_be);                     
+    
     if (packet_type == 0x40) 
     {
         for (int i = 3; i < 3 + length; i++) 
         {
-            printf("%d\n", (int)packet[i]);     
+            printf("%d\n", (int)packet[i]);       
         }
     }
 }
