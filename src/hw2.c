@@ -10,7 +10,6 @@ unsigned int extract_bits(unsigned int value, int start, int count)
     unsigned int mask = (1 << count) - 1;
     return (value >> start) & mask;
 }
-
 void print_packet(unsigned int packet[]) 
 {
     int packet_type = (packet[0] >> 24) & 0xFF;
@@ -21,20 +20,31 @@ void print_packet(unsigned int packet[])
     int last_be = (packet[1] >> 28) & 0xF;
     int first_be = (packet[1] >> 24) & 0xF;
 
-    printf("%d\n", packet_type == 0x40 ? 1 : 0);
-    printf("%d\n", address);
-    printf("%d\n", length);
-    printf("%d\n", requester_id);
-    printf("%d\n", tag);
-    printf("%d\n", last_be);
-    printf("%d\n", first_be);
-    
+    if (packet_type == 0x40) {
+        printf("Packet Type: Write\n");
+    } else {
+        printf("Packet Type: Read\n");
+    }
+
+    printf("Address: %d\n", address);
+    printf("Length: %d\n", length);
+    printf("Requester ID: %d\n", requester_id);
+    printf("Tag: %d\n", tag);
+    printf("Last BE: %d\n", last_be);
+    printf("1st BE: %d\n", first_be);
+
     if (packet_type == 0x40) 
     {
+        printf("Data: ");
         for (int i = 3; i < 3 + length; i++) 
         {
-            printf("%d\n", (int)packet[i]);
+            printf("%d ", (int)packet[i]);
         }
+        printf("\n");
+    } 
+    else 
+    {
+        printf("Data: \n");
     }
 }
 
