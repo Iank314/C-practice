@@ -11,46 +11,54 @@ void print_packet(unsigned int packet[])
     
     if (packet_type == 0x00) 
     {
-        printf("0\n");  
+        printf("Packet Type: Read\n");
+    }
+     else if (packet_type == 0x40) 
+    {
+        printf("Packet Type: Write\n");
     } 
-    else if (packet_type == 0x40) 
+    else if (packet_type == 0xDC) 
     {
-        printf("1\n");  
-    } else if (packet_type == 0xDC) 
+        printf("Packet Type: Completion\n");
+    } 
+    else 
     {
-        printf("2\n");  
-    } else {
         printf("No Output (invalid packet)\n");
         return;
     }
 
-    printf("%u\n", packet[2]);
+    printf("Address: %u\n", packet[2]);
 
     int length = packet[0] & 0xFF;
-    printf("%d\n", length);
+    printf("Length: %d\n", length);
 
     int requester_id = (packet[1] >> 16) & 0xFFFF;
     int tag = (packet[1] >> 8) & 0xFF;
-    printf("%d\n%d\n", requester_id, tag);
+    printf("Requester ID: %d\n", requester_id);
+    printf("Tag: %d\n", tag);
 
-    if (packet_type == 0x40) 
-    {  
+    if (packet_type == 0x40 || packet_type == 0x00) 
+    {
         int last_be = (packet[1] >> 4) & 0xF;
         int first_be = packet[1] & 0xF;
-        printf("%d\n%d\n", last_be, first_be);
+        printf("Last BE: %d\n", last_be);
+        printf("1st BE: %d\n", first_be);
     }
 
     if (packet_type == 0x40) 
-    {  
+    {
+        printf("Data: ");
         for (int i = 0; i < length; i++) 
         {
             printf("%d ", packet[3 + i]);
         }
         printf("\n");
     }
+    else 
+     {
+        printf("Data: \n");
+    }
 }
-
-
 void store_values(unsigned int packets[], char *memory)
 {
     int packet_start = 0;
