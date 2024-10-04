@@ -24,7 +24,7 @@ void print_packet(unsigned int *packet)
         printf("Address: %d\n", address);
         printf("Length: %d\n", length);
         printf("Requester ID: %d\n", requester_id);
-        printf("Tag: Unused in Write Requests\n");  
+        printf("Tag: %d\n", tag);
         printf("Last BE: %d\n", last_be);
         printf("1st BE: %d\n", first_be);
 
