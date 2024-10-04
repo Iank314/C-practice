@@ -5,24 +5,23 @@
 
 #include "hw2.h"
 
-unsigned int extract_bits(unsigned int value, int start, int count) 
-{
-    unsigned int mask = (1 << count) - 1;
-    return (value >> start) & mask;
-}
+
 void print_packet(unsigned int packet[]) 
 {
-    int packet_type = (packet[0] >> 24) & 0xFF;
-    int length = packet[0] & 0xFF;
+    int packet_type = (*(packet) >> 24) & 0xFF;
+    int length = *(packet) & 0xFF;
     unsigned int address = *(packet + 2);
-    int requester_id = packet[1] & 0xFFFF;
-    int tag = (packet[1] >> 16) & 0xFF;
-    int last_be = (packet[1] >> 28) & 0xF;
-    int first_be = (packet[1] >> 24) & 0xF;
+    int requester_id = *(packet + 1) & 0xFFFF;
+    int tag = (*(packet + 1) >> 16) & 0xFF;
+    int last_be = (*(packet + 1) >> 28) & 0xF;
+    int first_be = (*(packet + 1) >> 24) & 0xF;
 
-    if (packet_type == 0x40) {
+    if (packet_type == 0x40) 
+    {
         printf("Packet Type: Write\n");
-    } else {
+    } 
+    else 
+    {
         printf("Packet Type: Read\n");
     }
 
@@ -38,7 +37,7 @@ void print_packet(unsigned int packet[])
         printf("Data: ");
         for (int i = 3; i < 3 + length; i++) 
         {
-            printf("%d ", (int)packet[i]);
+            printf("%d ", (int)*(packet + i));
         }
         printf("\n");
     } 
@@ -53,15 +52,15 @@ void store_values(unsigned int packets[], char *memory)
     int packet_index = 0;
     while (true) 
     {
-        int packet_type = extract_bits(packets[packet_index], 24, 8);
+        int packet_type = (packets[packet_index] >> 24) & 0xFF;
         if (packet_type != 0x40) break;  
         
-        int length = extract_bits(packets[packet_index], 0, 8);
-        unsigned int address = (packets[packet_index + 2] & 0xFFFFFFFC);  
+        int length = packets[packet_index] & 0xFF;
+        unsigned int address = packets[packet_index + 2] & 0xFFFFFFFC;  
         if (address >= (1 << 20)) break;  
 
-        int first_be = extract_bits(packets[packet_index + 1], 24, 4);
-        int last_be = extract_bits(packets[packet_index + 1], 28, 4);
+        int first_be = (packets[packet_index + 1] >> 24) & 0xF;
+        int last_be = (packets[packet_index + 1] >> 28) & 0xF;
 
         for (int i = 0; i < length; i++) 
         {
