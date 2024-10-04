@@ -5,6 +5,7 @@
 
 #include "hw2.h"
 
+
 void print_packet(unsigned int *packet) 
 {
     if (packet == NULL) return;
@@ -23,14 +24,6 @@ void print_packet(unsigned int *packet)
        printf("Error: Invalid packet type 0x%X\n", packet_type);
        return; 
     }
-    else if (packet_type == 0x40) 
-    {
-       printf("Packet Type: Write\n");
-    } 
-    else if (packet_type == 0x00) 
-    {
-       printf("Packet Type: Read\n");
-    }
 
     printf("Address: %d\n", address);
     printf("Length: %d\n", length);
@@ -39,18 +32,14 @@ void print_packet(unsigned int *packet)
     printf("Last BE: %d\n", last_be);
     printf("1st BE: %d\n", first_be);
 
+
     if (packet_type == 0x40 && length > 0) 
     {
-        printf("Data: ");
         for (int i = 0; i < length; i++) 
         {
             printf("%d ", (int)*(packet + 3 + i)); 
         }
         printf("\n");
-    } 
-    else 
-    {
-        printf("Data: \n");
     }
 }
 void store_values(unsigned int packets[], char *memory)
