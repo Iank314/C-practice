@@ -48,53 +48,44 @@ void print_packet(unsigned int *packet)
     }
 }
 
-void store_values(unsigned int packets[], char *memory) 
+void store_values(unsigned int packets[], char *memory)
 {
-    int packet_index = 0;
-    while (true) 
+    int length = packets[0] & 0xFF; 
+    unsigned int address = packets[2]; 
+    int first_be = packets[1] & 0xF; 
+    int last_be = (packets[1] >> 4) & 0xF; 
+
+
+    for (int i = 0; i < length; i++) 
     {
-        int packet_type = (packets[packet_index] >> 24) & 0xFF;
-        if (packet_type != 0x40) break;  
-        
-        int length = packets[packet_index] & 0xFF;
-        unsigned int address = packets[packet_index + 2] & 0xFFFFFFFC;  
-        if (address >= (1 << 20)) break;  
+        int mem_index = address + (i * 4); 
 
-        int first_be = (packets[packet_index + 1] >> 24) & 0xF;
-        int last_be = (packets[packet_index + 1] >> 28) & 0xF;
 
-        for (int i = 0; i < length; i++) 
+        int data = packets[3 + i]; 
+
+        if (i == 0) 
         {
-            unsigned int data = packets[packet_index + 3 + i];
-            int mem_index = address + (i * 4);
-
-            if (i == 0) 
-            {
-                if (first_be & 1) memory[mem_index] = (char)(data & 0xFF);
-                if (first_be & 2) memory[mem_index + 1] = (char)((data >> 8) & 0xFF);
-                if (first_be & 4) memory[mem_index + 2] = (char)((data >> 16) & 0xFF);
-                if (first_be & 8) memory[mem_index + 3] = (char)((data >> 24) & 0xFF);
-            } 
-            else if (i == length - 1) 
-            {
-                if (last_be & 1) memory[mem_index] = (char)(data & 0xFF);
-                if (last_be & 2) memory[mem_index + 1] = (char)((data >> 8) & 0xFF);
-                if (last_be & 4) memory[mem_index + 2] = (char)((data >> 16) & 0xFF);
-                if (last_be & 8) memory[mem_index + 3] = (char)((data >> 24) & 0xFF);
-            } 
-            else 
-            {
-                memory[mem_index] = (char)(data & 0xFF);
-                memory[mem_index + 1] = (char)((data >> 8) & 0xFF);
-                memory[mem_index + 2] = (char)((data >> 16) & 0xFF);
-                memory[mem_index + 3] = (char)((data >> 24) & 0xFF);
-            }
+            if (first_be & 1) memory[mem_index] = (char)(data & 0xFF);          // Byte 0
+            if (first_be & 2) memory[mem_index + 1] = (char)((data >> 8) & 0xFF);  // Byte 1
+            if (first_be & 4) memory[mem_index + 2] = (char)((data >> 16) & 0xFF); // Byte 2
+            if (first_be & 8) memory[mem_index + 3] = (char)((data >> 24) & 0xFF); // Byte 3
         }
-
-        packet_index += (3 + length);
+        else if (i == length - 1) 
+        {
+            if (last_be & 1) memory[mem_index] = (char)(data & 0xFF);          // Byte 0
+            if (last_be & 2) memory[mem_index + 1] = (char)((data >> 8) & 0xFF);  // Byte 1
+            if (last_be & 4) memory[mem_index + 2] = (char)((data >> 16) & 0xFF); // Byte 2
+            if (last_be & 8) memory[mem_index + 3] = (char)((data >> 24) & 0xFF); // Byte 3
+        }
+        else 
+        {
+            memory[mem_index] = (char)(data & 0xFF);           // Byte 0
+            memory[mem_index + 1] = (char)((data >> 8) & 0xFF);  // Byte 1
+            memory[mem_index + 2] = (char)((data >> 16) & 0xFF); // Byte 2
+            memory[mem_index + 3] = (char)((data >> 24) & 0xFF); // Byte 3
+        }
     }
 }
-
 unsigned int* create_completion(unsigned int packets[], const char *memory)
 {
     (void)packets;
