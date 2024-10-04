@@ -11,11 +11,11 @@ void print_packet(unsigned int *packet)
     int length = *(packet) & 0xFF;
     unsigned int address = *(packet + 2);
     
-    int requester_id = *(packet + 1) & 0xFFFF; 
+    int requester_id = *(packet + 1); 
 
     int tag = (*(packet + 1) >> 16) & 0xFF; 
-    int last_be = (*(packet + 1) >> 28) & 0xF; 
-    int first_be = (*(packet + 1) >> 24) & 0xF; 
+    int last_be = (*(packet + 1) >> 12) & 0xF; 
+    int first_be = (*(packet + 1) >> 8) & 0xF; 
 
     if (packet_type == 0x40) 
     {
