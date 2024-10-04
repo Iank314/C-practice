@@ -26,28 +26,43 @@ unsigned int extract_bits(unsigned int value, int start, int count)
 
 void print_packet(unsigned int packet[])
 {
-    int packet_type = extract_bits(packet[0], 24, 8);
-    int length = extract_bits(packet[0], 0, 8);
-    int address = packet[1] & 0xFFFFFFFF;
+    int packet_type = extract_bits(packet[0], 24, 8);  
+    int length = extract_bits(packet[0], 0, 8);       
+    int address = packet[1] & 0xFFFFFFFF;             
     int requester_id = extract_bits(packet[1], 16, 16);
-    int tag = extract_bits(packet[1], 8, 8);
-    int last_be = extract_bits(packet[2], 28, 4);
-    int first_be = extract_bits(packet[2], 24, 4);
+    int tag = extract_bits(packet[1], 8, 8);          
+    int last_be = extract_bits(packet[2], 28, 4);      
+    int first_be = extract_bits(packet[2], 24, 4);   
 
-    printf("%d\n", packet_type);
-    printf("%d\n", address);
-    printf("%d\n", length);
-    printf("%d\n", requester_id);
-    printf("%d\n", tag);
-    printf("%d\n", last_be);
-    printf("%d\n", first_be);
-
-    if (packet_type == 0x40)
+    if (packet_type == 0x40) 
     {
-        for (int i = 3; i < 6; i++) 
-        {
+        printf("Packet Type: Write\n");
+    }
+     else 
+    {
+        printf("Packet Type: Read\n");
+    }
+    
+    printf("Address: %d\n", address);
+    printf("Length: %d\n", length);
+    printf("Requester ID: %d\n", requester_id);
+    printf("Tag: %d\n", tag);
+    printf("Last BE: %d\n", last_be);
+    printf("1st BE: %d\n", first_be);
+    
+    if (packet_type == 0x40) 
+    {
+        printf("Data: ");
+        for (int i = 3; i < 3 + length; i++) 
+        {  
             int payload_data = (int) packet[i];
-            printf("%d\n", payload_data);
+            printf("%d ", payload_data);
         }
+        printf("\n");
+    } 
+    else 
+    {
+        printf("Data: \n");
     }
 }
+
