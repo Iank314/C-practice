@@ -7,6 +7,8 @@
 
 void print_packet(unsigned int *packet) 
 {
+    if (packet == NULL) return;
+
     int packet_type = (*(packet) >> 24) & 0xFF;
     int length = *(packet) & 0xFF;
     unsigned int address = *(packet + 2);
@@ -15,15 +17,16 @@ void print_packet(unsigned int *packet)
     int tag = (*(packet + 1) >> 8) & 0xFF; 
     int last_be = (*(packet + 1) >> 4) & 0xF; 
     int first_be = (*(packet + 1) & 0xF); 
+    
     if (packet_type != 0x40 && packet_type != 0x00)
     {
        printf("Error: Invalid packet type 0x%X\n", packet_type);
        return; 
     }
-   else if (packet_type == 0x40) 
-   {
-      printf("Packet Type: Write\n");
-   } 
+    else if (packet_type == 0x40) 
+    {
+       printf("Packet Type: Write\n");
+    } 
     else if (packet_type == 0x00) 
     {
        printf("Packet Type: Read\n");
@@ -36,7 +39,7 @@ void print_packet(unsigned int *packet)
     printf("Last BE: %d\n", last_be);
     printf("1st BE: %d\n", first_be);
 
-    if (packet_type == 0x40) 
+    if (packet_type == 0x40 && length > 0) 
     {
         printf("Data: ");
         for (int i = 0; i < length; i++) 
