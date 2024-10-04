@@ -28,7 +28,7 @@ void print_packet(unsigned int packet[])
 {
     int packet_type = extract_bits(packet[0], 24, 8);  
     int length = extract_bits(packet[0], 0, 8);       
-    int address = packet[1] & 0xFFFFFFFF;             
+    int address = (int) packet[1];          
     int requester_id = extract_bits(packet[1], 16, 16);
     int tag = extract_bits(packet[1], 8, 8);          
     int last_be = extract_bits(packet[2], 28, 4);      
