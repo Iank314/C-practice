@@ -13,23 +13,24 @@ void print_packet(unsigned int *packet)
     int length = *(packet) & 0xFF;
     unsigned int address = *(packet + 2);
 
-    if (address > 1000) 
-    {
-        printf("Error: Invalid address %d\n", address);
-        return;
-    }
-
     int requester_id = (*(packet + 1) >> 16); 
     int tag = (*(packet + 1) >> 8) & 0xFF; 
     int last_be = (*(packet + 1) >> 4) & 0xF; 
     int first_be = (*(packet + 1) & 0xF); 
-    
+
+    if (address > 125000) 
+    {
+        printf("Error: Invalid address %d (exceeds 1 megabit)\n", address);
+        return;  // Stop processing this packet, but don't halt the entire loop
+    }
+
     if (packet_type != 0x40 && packet_type != 0x00)
     {
        printf("Error: Invalid packet type 0x%X\n", packet_type);
        return; 
     }
-    else if (packet_type == 0x40) 
+
+    if (packet_type == 0x40) 
     {
        printf("Packet Type: Write\n");
     } 
