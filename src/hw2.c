@@ -27,22 +27,44 @@ void print_packet(unsigned int *packet)
     else 
     {
         printf("Error: Invalid packet type 0x%X\n", packet_type);
-        return; 
+        return;
     }
 
-    printf("Address: %d\n", address);
+    if (address > 1000000) 
+    {
+        printf("Error: Invalid address %u. Out of bounds.\n", address);
+        return;
+    }
+
+    if (length <= 0 || length > 1024) 
+    {
+        printf("Error: Invalid length %d. Length must be between 1 and 1024.\n", length);
+        return;
+    }
+
+    printf("Address: %u\n", address);
     printf("Length: %d\n", length);
     printf("Requester ID: %d\n", requester_id);
     printf("Tag: %d\n", tag);
     printf("Last BE: %d\n", last_be);
     printf("1st BE: %d\n", first_be);
 
+    if (first_be == 0 || last_be == 0) 
+    {
+        printf("Warning: Byte Enable fields (1st BE: %d, Last BE: %d) may disable all bytes.\n", first_be, last_be);
+    }
+
     if (packet_type == 0x40) 
     {
         printf("Data: ");
         for (int i = 0; i < length; i++) 
         {
-            printf("%d ", (int)*(packet + 3 + i)); 
+            int data = (int)*(packet + 3 + i);
+            printf("%d ", data);
+            if (data == 0) 
+            {
+                printf("(Warning: Data at index %d is zero) ", i);
+            }
         }
         printf("\n");
     } 
