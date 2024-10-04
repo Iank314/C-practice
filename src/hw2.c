@@ -11,7 +11,7 @@ void print_packet(unsigned int *packet)
     int length = *(packet) & 0xFF;
     unsigned int address = *(packet + 2);
     
-    int requester_id = (*(packet + 1) >> 12); 
+    int requester_id = (*(packet + 1) >> 16); 
 
     int tag = (*(packet + 1) >> 8) & 0xFF; 
     int last_be = (*(packet + 1) >> 4) & 0xF; 
