@@ -110,7 +110,7 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
     int packet_type = (packets[0] >> 24) & 0xFF;
     if (packet_type != 0x00) 
     {
-        return NULL;
+        return NULL;  
     }
 
     unsigned int address = packets[2];
