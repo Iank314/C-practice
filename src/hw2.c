@@ -5,29 +5,30 @@
 
 #include "hw2.h"
 
-
 void print_packet(unsigned int *packet) 
 {
     int packet_type = (*(packet) >> 24) & 0xFF;
     int length = *(packet) & 0xFF;
     unsigned int address = *(packet + 2);
-    int requester_id = *(packet + 1) & 0xFFFF;
-    int tag = (*(packet + 1) >> 16) & 0xFF;
-    int last_be = (*(packet + 1) >> 28) & 0xF;
-    int first_be = (*(packet + 1) >> 24) & 0xF;
+    
+    int requester_id = *(packet + 1) & 0xFFFF; 
 
-    // Debugging output
-    printf("Raw packet[1]: 0x%08X\n", *(packet + 1));  // Print the raw binary value of packet[1]
+    int tag = (*(packet + 1) >> 16) & 0xFF; 
+    int last_be = (*(packet + 1) >> 28) & 0xF; 
+    int first_be = (*(packet + 1) >> 24) & 0xF; 
 
-    if (packet_type == 0x40) {
+    if (packet_type == 0x40) 
+    {
         printf("Packet Type: Write\n");
-    } else {
+    } 
+    else 
+    {
         printf("Packet Type: Read\n");
     }
 
     printf("Address: %d\n", address);
     printf("Length: %d\n", length);
-    printf("Requester ID: %d\n", requester_id);  // Print Requester ID with debugging info
+    printf("Requester ID: %d\n", requester_id);
     printf("Tag: %d\n", tag);
     printf("Last BE: %d\n", last_be);
     printf("1st BE: %d\n", first_be);
@@ -37,7 +38,7 @@ void print_packet(unsigned int *packet)
         printf("Data: ");
         for (int i = 0; i < length; i++) 
         {
-            printf("%d ", (int)*(packet + 3 + i));
+            printf("%d ", (int)*(packet + 3 + i)); 
         }
         printf("\n");
     } 
