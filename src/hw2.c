@@ -132,16 +132,21 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
         }
 
         completion_packets[completion_packet_index] = (0xDC << 24) | current_length;
-        completion_packets[completion_packet_index + 1] = (220 << 16) | (requester_id << 16) | (tag << 8) | (byte_count & 0xFF); 
-        completion_packets[completion_packet_index + 2] = address & 0x7F;  
+        completion_packets[completion_packet_index + 1] = (220 << 24) | (requester_id << 16) | (tag << 8) | ((byte_count > 0xFFF) ? 0xFFF : byte_count); 
+        completion_packets[completion_packet_index + 2] = address & 0x7FFFFFFF; 
 
         for (int i = 0; i < current_length; i++)
         {
             int mem_index = address + (i * 4);
-            unsigned int data = (unsigned int)((memory[mem_index] & 0xFF) |
-                                               (memory[mem_index + 1] & 0xFF) << 8 |
-                                               (memory[mem_index + 2] & 0xFF) << 16 |
-                                               (memory[mem_index + 3] & 0xFF) << 24);
+            
+            unsigned int data = 0;
+            if (mem_index + 3 < 1000000) 
+            {  
+                data = (unsigned int)((memory[mem_index] & 0xFF) |
+                                      (memory[mem_index + 1] & 0xFF) << 8 |
+                                      (memory[mem_index + 2] & 0xFF) << 16 |
+                                      (memory[mem_index + 3] & 0xFF) << 24);
+            }
             completion_packets[completion_packet_index + 3 + i] = data;
         }
 
