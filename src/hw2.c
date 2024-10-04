@@ -6,22 +6,20 @@
 #include "hw2.h"
 
 
-void print_packet(unsigned int packet[]) 
+void print_packet(unsigned int *packet) 
 {
     int packet_type = (*(packet) >> 24) & 0xFF;
     int length = *(packet) & 0xFF;
     unsigned int address = *(packet + 2);
-    int requester_id = *(packet + 1) & 0xFFFF;
-    int tag = (*(packet + 1) >> 16) & 0xFF;
-    int last_be = (*(packet + 1) >> 28) & 0xF;
-    int first_be = (*(packet + 1) >> 24) & 0xF;
+    int requester_id = *(packet + 1) & 0xFFFF; 
+    int tag = (*(packet + 1) >> 16) & 0xFF; 
+    int last_be = (*(packet + 1) >> 28) & 0xF; 
+    int first_be = (*(packet + 1) >> 24) & 0xF; 
 
-    if (packet_type == 0x40) 
-    {
+
+    if (packet_type == 0x40) {
         printf("Packet Type: Write\n");
-    } 
-    else 
-    {
+    } else {
         printf("Packet Type: Read\n");
     }
 
@@ -32,12 +30,13 @@ void print_packet(unsigned int packet[])
     printf("Last BE: %d\n", last_be);
     printf("1st BE: %d\n", first_be);
 
+
     if (packet_type == 0x40) 
     {
         printf("Data: ");
-        for (int i = 3; i < 3 + length; i++) 
+        for (int i = 0; i < length; i++) 
         {
-            printf("%d ", (int)*(packet + i));
+            printf("%d ", (int)*(packet + 3 + i)); 
         }
         printf("\n");
     } 
