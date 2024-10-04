@@ -61,10 +61,6 @@ void print_packet(unsigned int *packet)
         {
             int data = (int)*(packet + 3 + i);
             printf("%d ", data);
-            if (data == 0) 
-            {
-                printf("(Warning: Data at index %d is zero) ", i);
-            }
         }
         printf("\n");
     } 
