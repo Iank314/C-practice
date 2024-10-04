@@ -98,7 +98,48 @@ void store_values(unsigned int packets[], char *memory)
 }
 unsigned int* create_completion(unsigned int packets[], const char *memory)
 {
-    (void)packets;
-    (void)memory;
-    return NULL;
+    int packet_type = (packets[0] >> 24) & 0xFF;
+    if (packet_type != 0x00) 
+    {
+        return NULL;
+    }
+
+    unsigned int address = packets[2];
+    int length = packets[0] & 0xFF;
+    int requester_id = (packets[1] >> 16) & 0xFFFF;
+    int tag = (packets[1] >> 8) & 0xFF;
+
+    unsigned int *completion_packets = (unsigned int*)malloc((3 + length) * sizeof(unsigned int));
+    int completion_packet_index = 0;
+    int byte_count = length * 4; 
+    
+    while (length > 0)
+    {
+        int current_length = length;
+        if ((address & 0x3FFF) + (current_length * 4) > 0x4000) 
+        {
+            current_length = (0x4000 - (address & 0x3FFF)) / 4;
+        }
+
+        completion_packets[completion_packet_index] = (0xDC << 24) | current_length; 
+        completion_packets[completion_packet_index + 1] = (requester_id << 16) | (tag << 8) | (byte_count & 0xFF); 
+        completion_packets[completion_packet_index + 2] = address & 0x7F; 
+
+        for (int i = 0; i < current_length; i++)
+        {
+            int mem_index = address + (i * 4);
+            unsigned int data = (unsigned int)((memory[mem_index] & 0xFF) |
+                                               (memory[mem_index + 1] & 0xFF) << 8 |
+                                               (memory[mem_index + 2] & 0xFF) << 16 |
+                                               (memory[mem_index + 3] & 0xFF) << 24);
+            completion_packets[completion_packet_index + 3 + i] = data;
+        }
+
+        address += current_length * 4;
+        byte_count -= current_length * 4;
+        length -= current_length;
+        completion_packet_index += 3 + current_length;
+    }
+
+    return completion_packets;
 }
