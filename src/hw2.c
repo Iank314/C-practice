@@ -5,10 +5,26 @@
 
 #include "hw2.h"
 
-void store_values(unsigned int packets[], char *memory)
+
+unsigned int extract_bits(unsigned int value, int start, int count) 
 {
-    (void)packets;
-    (void)memory;
+    unsigned int mask = (1 << count) - 1;
+    return (value >> start) & mask;
+}
+void store_values(unsigned int packets[], char *memory) 
+{
+    int length = extract_bits(packets[0], 0, 8);  
+    int index = 0;
+
+    for (int i = 3; i < 3 + length; i++) 
+    {
+        unsigned int data = packets[i];
+        
+        memory[index++] = (char)(data >> 24); 
+        memory[index++] = (char)(data >> 16);  
+        memory[index++] = (char)(data >> 8);   
+        memory[index++] = (char)(data);      
+    }
 }
 
 unsigned int* create_completion(unsigned int packets[], const char *memory)
@@ -18,10 +34,6 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
 	return NULL;
 }
 
-unsigned int extract_bits(unsigned int value, int start, int count) {
-    unsigned int mask = (1 << count) - 1;
-    return (value >> start) & mask;
-}
 
 void print_packet(unsigned int packet[])
 {
