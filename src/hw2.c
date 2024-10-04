@@ -115,14 +115,17 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
     int length = packets[0] & 0xFF;
     int requester_id = (packets[1] >> 16) & 0xFFFF;
     int tag = (packets[1] >> 8) & 0xFF;
+
     unsigned int *completion_packets = (unsigned int*)malloc((3 + length) * sizeof(unsigned int));
     if (completion_packets == NULL) return NULL;
+
     int completion_packet_index = 0;
     int byte_count = length * 4;
 
     while (length > 0)
     {
         int current_length = length;
+
         if ((address & 0x3FFF) + (current_length * 4) > 0x4000) 
         {
             current_length = (0x4000 - (address & 0x3FFF)) / 4;
