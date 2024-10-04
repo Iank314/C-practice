@@ -11,53 +11,77 @@ void print_packet(unsigned int *packet)
 
     int packet_type = (*(packet) >> 24) & 0xFF;
     int length = *(packet) & 0xFF;
-    unsigned int address = *(packet + 2);
+    unsigned int address = (*(packet + 2)) & 0x3FFFFFFF;
 
-    int requester_id = (*(packet + 1) >> 16); 
+    int requester_id = (*(packet + 1) >> 16) & 0xFFFF; 
     int tag = (*(packet + 1) >> 8) & 0xFF; 
     int last_be = (*(packet + 1) >> 4) & 0xF; 
     int first_be = (*(packet + 1) & 0xF); 
 
-    if (address > 125000) 
+    if (packet_type == 0x40)  
     {
-        printf("Error: Invalid address %d (exceeds 1 megabit)\n", address);
-        return;  // Stop processing this packet, but don't halt the entire loop
-    }
+        printf("Packet Type: Write\n");
+        printf("Address: %d\n", address);
+        printf("Length: %d\n", length);
+        printf("Requester ID: %d\n", requester_id);
+        printf("Tag: Unused in Write Requests\n");  
+        printf("Last BE: %d\n", last_be);
+        printf("1st BE: %d\n", first_be);
 
-    if (packet_type != 0x40 && packet_type != 0x00)
-    {
-       printf("Error: Invalid packet type 0x%X\n", packet_type);
-       return; 
-    }
-
-    if (packet_type == 0x40) 
-    {
-       printf("Packet Type: Write\n");
-    } 
-    else if (packet_type == 0x00) 
-    {
-       printf("Packet Type: Read\n");
-    }
-
-    printf("Address: %d\n", address);
-    printf("Length: %d\n", length);
-    printf("Requester ID: %d\n", requester_id);
-    printf("Tag: %d\n", tag);
-    printf("Last BE: %d\n", last_be);
-    printf("1st BE: %d\n", first_be);
-
-    if (packet_type == 0x40 && length > 0) 
-    {
-        printf("Data: ");
-        for (int i = 0; i < length; i++) 
+        if (length > 0) 
         {
-            printf("%d ", (int)*(packet + 3 + i)); 
+            printf("Data: ");
+            for (int i = 0; i < length; i++) 
+            {
+                printf("%d ", *(packet + 3 + i)); 
+            }
+            printf("\n");
+        } 
+        else 
+        {
+            printf("Data: \n");
         }
-        printf("\n");
+    } 
+    else if (packet_type == 0x00)  
+    {
+        printf("Packet Type: Read\n");
+        printf("Address: %d\n", address);
+        printf("Length: %d\n", length);
+        printf("Requester ID: %d\n", requester_id);
+        printf("Tag: %d\n", tag);  
+        printf("Last BE: %d\n", last_be);
+        printf("1st BE: %d\n", first_be);
+        printf("Data: \n");  
+    } 
+    else if (packet_type == 0x4A)  
+    {
+        int completer_id = (*(packet + 1) >> 16) & 0xFFFF;
+        int byte_count = (*(packet + 1)) & 0xFFF;
+        int lower_address = (*(packet + 2)) & 0x7F;  
+
+        printf("Packet Type: Completion\n");
+        printf("Address: %d\n", address);
+        printf("Completer ID: %d\n", completer_id);
+        printf("Byte Count: %d\n", byte_count);
+        printf("Lower Address: %d\n", lower_address);
+
+        if (length > 0) 
+        {
+            printf("Data: ");
+            for (int i = 0; i < length; i++) 
+            {
+                printf("%d ", *(packet + 3 + i)); 
+            }
+            printf("\n");
+        } 
+        else 
+        {
+            printf("Data: \n");
+        }
     } 
     else 
     {
-        printf("Data: \n");
+        printf("Error: Invalid packet type 0x%X\n", packet_type);
     }
 }
 
