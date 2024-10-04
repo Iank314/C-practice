@@ -9,54 +9,40 @@ void print_packet(unsigned int *packet)
 {
     int packet_type = (*(packet) >> 24) & 0xFF;
     int length = *(packet) & 0xFF;
-    unsigned int address = *(packet + 2);
+    unsigned int address = *(packet);
     
     int requester_id = (*(packet + 1) >> 16); 
     int tag = (*(packet + 1) >> 8) & 0xFF; 
     int last_be = (*(packet + 1) >> 4) & 0xF; 
     int first_be = (*(packet + 1) & 0xF); 
 
-    if (packet_type != 0x40 && packet_type != 0x00) 
+    if (packet_type == 0x40) 
+    {
+        printf("Packet Type: Write\n");
+    } 
+    else if (packet_type == 0x00) 
+    {
+        printf("Packet Type: Read\n");
+    } 
+    else 
     {
         printf("Error: Invalid packet type 0x%X\n", packet_type);
-        return;
+        return; 
     }
 
-    if (length == 0 || length > 1024)  
-    {
-        printf("Error: Invalid length %d\n", length);
-        return;
-    }
-
-    if (address > 1000000) 
-    {
-        printf("Error: Invalid address %u (out of bounds)\n", address);
-        return;
-    }
-
-    printf("Packet Type: %s\n", packet_type == 0x40 ? "Write" : "Read");
-    printf("Address: %u\n", address);
+    printf("Address: %d\n", address);
     printf("Length: %d\n", length);
     printf("Requester ID: %d\n", requester_id);
     printf("Tag: %d\n", tag);
     printf("Last BE: %d\n", last_be);
     printf("1st BE: %d\n", first_be);
 
-
     if (packet_type == 0x40) 
     {
         printf("Data: ");
         for (int i = 0; i < length; i++) 
         {
-            unsigned int *data_ptr = packet + 3 + i;
-            
-            if (data_ptr == NULL)
-            {
-                printf("Error: Data pointer out of bounds at index %d\n", i);
-                return;
-            }
-
-            printf("%d ", (int)*data_ptr);
+            printf("%d ", (int)*(packet + 3 + i)); 
         }
         printf("\n");
     } 
