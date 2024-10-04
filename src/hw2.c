@@ -13,9 +13,9 @@ void print_packet(unsigned int *packet)
     
     int requester_id = *(packet + 1); 
 
-    int tag = (*(packet + 1) >> 16) & 0xFF; 
-    int last_be = (*(packet + 1) >> 12) & 0xF; 
-    int first_be = (*(packet + 1) >> 8) & 0xF; 
+    int tag = (*(packet + 1) & 0xFF); 
+    int last_be = (*(packet + 1) & 0xF); 
+    int first_be = (*(packet + 1) & 0xF); 
 
     if (packet_type == 0x40) 
     {
