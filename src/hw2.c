@@ -83,6 +83,8 @@ void store_values(unsigned int packets[], char *memory)
         }
 
         printf("Writing data 0x%X to memory at index %d\n", data, mem_index);
+        printf("TLP: Writing data 0x%X to memory at index %d\n", data, mem_index);
+        printf("First BE: 0x%X, Last BE: 0x%X\n", first_be, last_be);
     }
 }
 unsigned int* create_completion(unsigned int packets[], const char *memory)
