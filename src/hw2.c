@@ -105,42 +105,45 @@ void store_values(unsigned int packets[], char *memory)
         packet_start += 3 + length;
     }
 }
-unsigned int* create_completion(unsigned int packets[], const char *memory) {
+unsigned int* create_completion(unsigned int packets[], const char *memory)
+{
     int packet_type = (packets[0] >> 24) & 0xFF;
-    if (packet_type != 0x00) { // Only process read requests
-        return NULL;
+    if (packet_type != 0x00) 
+    {
+        return NULL;  
     }
 
     unsigned int address = packets[2];
-    int length = packets[0] & 0xFF; // Length of 32-bit words
+    int length = packets[0] & 0xFF;
     int requester_id = (packets[1] >> 16) & 0xFFFF;
     int tag = (packets[1] >> 8) & 0xFF;
-    
-    int byte_count = length * 4; // Total byte count to be read
-    unsigned int *completion_packets = (unsigned int *)malloc((3 + length) * sizeof(unsigned int));
-    if (!completion_packets) return NULL; // Memory allocation check
+
+    unsigned int *completion_packets = (unsigned int*)malloc((3 + length) * sizeof(unsigned int));
+    if (completion_packets == NULL) return NULL;
 
     int completion_packet_index = 0;
-    
-    // Handle splitting completions if address crosses 0x4000 boundary
-    while (length > 0) {
+    int byte_count = length * 4;
+
+    while (length > 0)
+    {
         int current_length = length;
-        
-        if ((address & 0x3FFF) + (current_length * 4) > 0x4000) {
+
+        if ((address & 0x3FFF) + (current_length * 4) > 0x4000) 
+        {
             current_length = (0x4000 - (address & 0x3FFF)) / 4;
         }
 
-        // Construct the header for the completion packet
-        completion_packets[completion_packet_index] = (0xDC << 24) | current_length;  // Completion Type (0xDC) + Length
-        completion_packets[completion_packet_index + 1] = (220 << 24) | (requester_id << 16) | (tag << 8) | ((byte_count > 0xFFF) ? 0xFFF : byte_count); // Completer ID + Requester ID + Tag + ByteCount
-        completion_packets[completion_packet_index + 2] = address & 0x7FFFFFFF; // Address
-        
-        // Copy the data from memory to the completion packet
-        for (int i = 0; i < current_length; i++) {
+        completion_packets[completion_packet_index] = (0xDC << 24) | current_length;
+        completion_packets[completion_packet_index + 1] = (220 << 24) | (requester_id << 16) | (tag << 8) | ((byte_count > 0xFFF) ? 0xFFF : byte_count); 
+        completion_packets[completion_packet_index + 2] = address & 0x7FFFFFFF; 
+
+        for (int i = 0; i < current_length; i++)
+        {
             int mem_index = address + (i * 4);
             
             unsigned int data = 0;
-            if (mem_index + 3 < 1000000) { // Ensure memory is within bounds
+            if (mem_index + 3 < 1000000) 
+            {  
                 data = (unsigned int)((memory[mem_index] & 0xFF) |
                                       (memory[mem_index + 1] & 0xFF) << 8 |
                                       (memory[mem_index + 2] & 0xFF) << 16 |
@@ -149,7 +152,6 @@ unsigned int* create_completion(unsigned int packets[], const char *memory) {
             completion_packets[completion_packet_index + 3 + i] = data;
         }
 
-        // Update address, length, byte count for the next packet
         address += current_length * 4;
         byte_count -= current_length * 4;
         length -= current_length;
