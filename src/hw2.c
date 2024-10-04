@@ -27,7 +27,7 @@ void print_packet(unsigned int packet[])
 {
     int packet_type = extract_bits(packet[0], 24, 8);
     int length = extract_bits(packet[0], 0, 8);
-    int address = packet[1] & 0xFFFFFFFF;
+    unsigned int address = packet[1];
     int requester_id = extract_bits(packet[1], 0, 16);
     int tag = extract_bits(packet[1], 16, 8);
     int last_be = extract_bits(packet[2], 28, 4);
@@ -42,7 +42,7 @@ void print_packet(unsigned int packet[])
         printf("Packet Type: Read\n");
     }
 
-    printf("Address: %d\n", address);
+    printf("Address: %u\n", address);
     printf("Length: %d\n", length);
     printf("Requester ID: %d\n", requester_id);
     printf("Tag: %d\n", tag);
@@ -54,8 +54,7 @@ void print_packet(unsigned int packet[])
         printf("Data: ");
         for (int i = 3; i < 3 + length; i++) 
         {
-            int payload_data = (int) packet[i];
-            printf("%d ", payload_data);
+            printf("%d ", packet[i]);
         }
         printf("\n");
     } 
