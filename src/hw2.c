@@ -12,7 +12,13 @@ void print_packet(unsigned int *packet)
     int packet_type = (*(packet) >> 24) & 0xFF;
     int length = *(packet) & 0xFF;
     unsigned int address = *(packet + 2);
-    
+
+    if (address > 1000) 
+    {
+        printf("Error: Invalid address %d\n", address);
+        return;
+    }
+
     int requester_id = (*(packet + 1) >> 16); 
     int tag = (*(packet + 1) >> 8) & 0xFF; 
     int last_be = (*(packet + 1) >> 4) & 0xF; 
