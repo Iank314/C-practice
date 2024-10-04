@@ -15,19 +15,18 @@ void print_packet(unsigned int *packet)
     int tag = (*(packet + 1) >> 8) & 0xFF; 
     int last_be = (*(packet + 1) >> 4) & 0xF; 
     int first_be = (*(packet + 1) & 0xF); 
-
-    if (packet_type == 0x40) 
+    if (packet_type != 0x40 && packet_type != 0x00)
     {
-        printf("Packet Type: Write\n");
-    } 
+       printf("Error: Invalid packet type 0x%X\n", packet_type);
+       return; 
+    }
+   else if (packet_type == 0x40) 
+   {
+      printf("Packet Type: Write\n");
+   } 
     else if (packet_type == 0x00) 
     {
-        printf("Packet Type: Read\n");
-    } 
-    else 
-    {
-        printf("Error: Invalid packet type 0x%X\n", packet_type);
-        return; 
+       printf("Packet Type: Read\n");
     }
 
     printf("Address: %d\n", address);
