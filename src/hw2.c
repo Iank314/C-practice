@@ -31,14 +31,6 @@ void print_packet(unsigned int *packet)
     {
        printf("Packet Type: Read\n");
     }
-
-    printf("Address: %d\n", address);
-    printf("Length: %d\n", length);
-    printf("Requester ID: %d\n", requester_id);
-    printf("Tag: %d\n", tag);
-    printf("Last BE: %d\n", last_be);
-    printf("1st BE: %d\n", first_be);
-
     if (packet_type == 0x40 && length > 0) 
     {
         printf("Data: ");
@@ -52,6 +44,13 @@ void print_packet(unsigned int *packet)
     {
         printf("Data: \n");
     }
+    printf("Address: %d\n", address);
+    printf("Length: %d\n", length);
+    printf("Requester ID: %d\n", requester_id);
+    printf("Tag: %d\n", tag);
+    printf("Last BE: %d\n", last_be);
+    printf("1st BE: %d\n", first_be);
+
 }
 
 void store_values(unsigned int packets[], char *memory)
