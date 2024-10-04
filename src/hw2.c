@@ -5,53 +5,48 @@
 
 #include "hw2.h"
 
-void print_packet(unsigned int *packet)
+void print_packet(unsigned int packet[]) 
 {
-    int packet_type = (*(packet) >> 24) & 0xFF;
-    int length = *(packet) & 0xFF;
-    unsigned int address = *(packet + 2);
-   
-    int requester_id = (*(packet + 1) >> 16);
-    int tag = (*(packet + 1) >> 8) & 0xFF;
-    int last_be = (*(packet + 1) >> 4) & 0xF;
-    int first_be = (*(packet + 1) & 0xF);
-
-
-    if (packet_type == 0x40)
+    int packet_type = (packet[0] >> 24) & 0xFF;
+    
+    if (packet_type == 0x00) 
     {
-        printf("Packet Type: Write\n");
-    }
-    else if (packet_type == 0x00)
+        printf("0\n");  
+    } 
+    else if (packet_type == 0x40) 
     {
-        printf("Packet Type: Read\n");
-    }
-    else
+        printf("1\n");  
+    } else if (packet_type == 0xDC) 
     {
-        printf("Error: Invalid packet type 0x%X\n", packet_type);
+        printf("2\n");  
+    } else {
+        printf("No Output (invalid packet)\n");
         return;
     }
 
+    printf("%u\n", packet[2]);
 
-    printf("Address: %d\n", address);
-    printf("Length: %d\n", length);
-    printf("Requester ID: %d\n", requester_id);
-    printf("Tag: %d\n", tag);
-    printf("Last BE: %d\n", last_be);
-    printf("1st BE: %d\n", first_be);
+    int length = packet[0] & 0xFF;
+    printf("%d\n", length);
 
+    int requester_id = (packet[1] >> 16) & 0xFFFF;
+    int tag = (packet[1] >> 8) & 0xFF;
+    printf("%d\n%d\n", requester_id, tag);
 
-    if (packet_type == 0x40)
-    {
-        printf("Data: ");
-        for (int i = 0; i < length; i++)
+    if (packet_type == 0x40) 
+    {  
+        int last_be = (packet[1] >> 4) & 0xF;
+        int first_be = packet[1] & 0xF;
+        printf("%d\n%d\n", last_be, first_be);
+    }
+
+    if (packet_type == 0x40) 
+    {  
+        for (int i = 0; i < length; i++) 
         {
-            printf("%d ", (int)*(packet + 3 + i));
+            printf("%d ", packet[3 + i]);
         }
         printf("\n");
-    }
-    else
-    {
-        printf("Data: \n");
     }
 }
 
