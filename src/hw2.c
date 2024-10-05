@@ -107,14 +107,14 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
     unsigned int lower_address = address & 0x7F;
     
     unsigned int remaining_bytes = length * 4;
-    unsigned int* completion = (unsigned int*)malloc(30 * (3 + length) * sizeof(unsigned int));
+    unsigned int* completion = (unsigned int*)malloc((3 + length) * sizeof(unsigned int));
 
     completion[0] = (0x50 << 24) | length;
     completion[1] = (220 << 16) | remaining_bytes;
     completion[2] = (requester_id << 16) | (tag << 8) | lower_address;
 
     unsigned int boundary = 0x4000;
-    unsigned int max_bytes_before_boundary = boundary - (address % boundary);
+    unsigned int bytes_to_boundary = boundary - (address % boundary);
 
     for (unsigned int i = 0; i < length; i++) 
     {
@@ -122,16 +122,16 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
         
         if ((mem_index + 4) > boundary) 
         {
-            unsigned int split_length = (max_bytes_before_boundary / 4);
+            unsigned int split_length = (bytes_to_boundary / 4);
             
-            unsigned int* new_completion = (unsigned int*)malloc(30 * (3 + split_length) * sizeof(unsigned int));
+            unsigned int* new_completion = (unsigned int*)malloc((3 + split_length) * sizeof(unsigned int));
             new_completion[0] = (0x50 << 24) | split_length;
             new_completion[1] = (220 << 16) | remaining_bytes;
             new_completion[2] = (requester_id << 16) | (tag << 8) | (address & 0x7F);
 
-            for (unsigned int j = 0; j < split_length; j++) 
-            {
-                new_completion[3 + j] = *(unsigned int *)(memory + mem_index + j * 4);
+            for (unsigned int j = 0; j < split_length; j++) {
+                unsigned int new_mem_index = address + j * 4;
+                new_completion[3 + j] = *(unsigned int *)(memory + new_mem_index);
             }
 
             return new_completion;
