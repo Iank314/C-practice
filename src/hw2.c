@@ -5,52 +5,50 @@
 
 #include "hw2.h"
 
-void print_packet(unsigned int packet[]) 
+void print_packet(unsigned int *packet) 
 {
-    unsigned int packet_type = *packet >> 10;
-    unsigned int length = *(packet) & 0x3FF;
-    unsigned int address = *(packet + 2);
-    unsigned int requester_id = (*(packet + 1) >> 16);
-    unsigned int tag = (*(packet + 1) >> 8) & 0xFF;
-    unsigned int last_be = (*(packet + 1) >> 4) & 0xF;
-    unsigned int first_be = (*(packet + 1) & 0xF);
+    unsigned int packet_type = (*packet >> 10);
+    unsigned int length = (*packet & 0x3FF);
+    unsigned int address = packet[2];
+    unsigned int header_1 = packet[1];
+    
+    unsigned int requester_id = (header_1 >> 16);
+    unsigned int tag = (header_1 >> 8) & 0xFF;
+    unsigned int last_be = (header_1 >> 4) & 0xF;
+    unsigned int first_be = header_1 & 0xF;
 
-    if ((packet_type & 0xFFFFF) == 0 && ((packet_type >> 21) & 0x1) == 0) 
-    {
-        if ((packet_type >> 20) == 1) 
-        {
-            printf("Packet Type: Write\n");
-            printf("Address: %d\n", address);
-            printf("Length: %d\n", length);
-            printf("Requester ID: %d\n", requester_id);
-            printf("Tag: %d\n", tag);
-            printf("Last BE: %d\n", last_be);
-            printf("1st BE: %d\n", first_be);
-            printf("Data: ");
-            for (int i = 0; i < (int)length; i++) 
-            {
-                printf("%d ", (int)(packet[3 + i]));
-            }
-            printf("\n");
-        } 
-        else 
-        {
-            printf("Packet Type: Read\n");
-            printf("Address: %d\n", address);
-            printf("Length: %d\n", length);
-            printf("Requester ID: %d\n", requester_id);
-            printf("Tag: %d\n", tag);
-            printf("Last BE: %d\n", last_be);
-            printf("1st BE: %d\n", first_be);
-            printf("Data: \n");  
-        }
-    }
-    else 
+    if ((packet_type & 0xFFFFF) != 0 || ((packet_type >> 21) & 0x1) != 0)
     {
         printf("Error: Invalid packet type\n");
         return;
     }
+
+    unsigned int is_write = (packet_type >> 20);
+
+    printf("Packet Type: %s\n", is_write ? "Write" : "Read");
+    printf("Address: %u\n", address);
+    printf("Length: %u\n", length);
+    printf("Requester ID: %u\n", requester_id);
+    printf("Tag: %u\n", tag);
+    printf("Last BE: %u\n", last_be);
+    printf("1st BE: %u\n", first_be);
+
+    if (is_write) 
+    {
+        printf("Data: ");
+        unsigned int *data_ptr = packet + 3;
+        for (unsigned int i = 0; i < length; i++) 
+        {
+            printf("%d ", *(data_ptr + i));
+        }
+        printf("\n");
+    } 
+    else 
+    {
+        printf("Data: \n");
+    }
 }
+
 void store_values(unsigned int packets[], char *memory)
 {
     int packet_start = 0;
