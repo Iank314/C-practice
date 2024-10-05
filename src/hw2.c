@@ -120,16 +120,17 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
     {
         unsigned int mem_index = address + i * 4;
 
-        if (mem_index >= boundary) 
+        if ((mem_index + 4) > boundary) 
         {
             unsigned int split_length = (bytes_to_boundary / 4);
             
             unsigned int* new_completion = (unsigned int*)malloc((3 + split_length) * sizeof(unsigned int));
             new_completion[0] = (0x50 << 24) | split_length;
             new_completion[1] = (220 << 16) | (split_length * 4);
-            new_completion[2] = (requester_id << 16) | (tag << 8) | ((mem_index & 0x7F));
+            new_completion[2] = (requester_id << 16) | (tag << 8) | (mem_index & 0x7F);
 
-            for (unsigned int j = 0; j < split_length; j++) {
+            for (unsigned int j = 0; j < split_length; j++) 
+            {
                 new_completion[3 + j] = *(unsigned int *)(memory + mem_index + j * 4);
             }
 
