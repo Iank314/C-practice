@@ -106,18 +106,19 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
     unsigned int tag = (packets[1] >> 8) & 0xFF;
     unsigned int lower_address = address & 0x7F;
 
-    unsigned int byte_count = length * 4;
+    unsigned int byte_count = length * 4; 
     unsigned int* completion = (unsigned int*)malloc((3 + length) * sizeof(unsigned int));
 
-    completion[0] = (0x50 << 24) | length;
-    completion[1] = (220 << 16) | byte_count;
-    completion[2] = (requester_id << 16) | (tag << 8) | lower_address;
+    completion[0] = (0x50 << 24) | length;  
+    completion[1] = (220 << 16) | byte_count;  
+    completion[2] = (requester_id << 16) | (tag << 8) | lower_address; 
 
     unsigned int boundary = 0x4000;
     unsigned int bytes_to_boundary = boundary - (address % boundary);
     unsigned int data_offset = 0;
 
-    if (bytes_to_boundary < byte_count) {
+    if (bytes_to_boundary < byte_count) 
+    {
         unsigned int split_length = bytes_to_boundary / 4;
 
         for (unsigned int i = 0; i < split_length; i++) 
