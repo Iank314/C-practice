@@ -7,7 +7,18 @@
 
 void print_packet(unsigned int *packet) 
 {
-    int packet_type = (*(packet) >> 24) & 0xFF;
+    int packet_type = *(packet);
+
+    if ((packet_type & 0x80000000) == 0 && ((packet_type & 0x40000000) != 0 || (packet_type & 0x40000000) == 0) && (packet_type & 0x3FFFFFFF) == 0) 
+    {
+        packet_type = (packet_type >> 10) & 0xFF;
+    } 
+    else 
+    {
+        printf("Error: Invalid packet type\n");
+        return;
+    }
+
     int length = *(packet) & 0xFF;
     unsigned int address = *(packet + 2);
    
