@@ -100,59 +100,34 @@ void store_values(unsigned int packets[], char *memory)
 }
 unsigned int* create_completion(unsigned int packets[], const char *memory) 
 {
-    int packet_type = (packets[0] >> 24) & 0xFF;
-    if (packet_type != 0x00) 
-    {
-        return NULL;  
-    }
-
     unsigned int address = packets[2];
-    int length = packets[0] & 0xFF;
-    int requester_id = (packets[1] >> 16) & 0xFFFF;
-    int tag = (packets[1] >> 8) & 0xFF;
+    unsigned int length = packets[0] & 0x3FF;  
+    unsigned int requester_id = (packets[1] >> 16) & 0xFFFF;
+    unsigned int tag = (packets[1] >> 8) & 0xFF;
+    
+    unsigned int lower_address = address & 0x7F;
+    unsigned int byte_count = length * 4;
 
-    unsigned int *completion_packets = (unsigned int*)malloc((3 + length) * sizeof(unsigned int));
-    if (completion_packets == NULL) return NULL;
-
-    int completion_packet_index = 0;
-    int byte_count = length * 4;
-
-    while (length > 0)
+    unsigned int *completion = (unsigned int *) malloc((3 + length) * sizeof(unsigned int));
+    if (!completion) 
     {
-        int current_length = length;
-
-        if ((address & 0x3FFF) + (current_length * 4) > 0x4000) 
-        {
-            current_length = (0x4000 - (address & 0x3FFF)) / 4;
-        }
-
-        completion_packets[completion_packet_index] = (0xDC << 24) | current_length;
-        completion_packets[completion_packet_index + 1] = (220 << 24) | (requester_id << 16) | (tag << 8) | ((byte_count > 0xFFF) ? 0xFFF : byte_count); 
-        completion_packets[completion_packet_index + 2] = address & 0x7FFFFFFF;
-
-        for (int i = 0; i < current_length; i++) 
-        {
-            int mem_index = address + (i * 4);
-            
-            unsigned int data = 0;
-            if (mem_index + 3 < 1000000) 
-            {
-                data = (unsigned int)((memory[mem_index] & 0xFF) |
-                                      (memory[mem_index + 1] & 0xFF) << 8 |
-                                      (memory[mem_index + 2] & 0xFF) << 16 |
-                                      (memory[mem_index + 3] & 0xFF) << 24);
-            }
-            completion_packets[completion_packet_index + 3 + i] = data;
-        }
-
-        address += current_length * 4;
-        byte_count -= current_length * 4;
-        length -= current_length;
-
-        completion_packets[completion_packet_index + 2] = (completion_packets[completion_packet_index + 2] & ~0x7F) | (address & 0x7F);
-
-        completion_packet_index += 3 + current_length;
+        return NULL;
     }
 
-    return completion_packets;
+    unsigned int current_length = length;
+    if ((address & 0x3FFF) + (current_length * 4) > 0x4000) 
+    {
+        current_length = (0x4000 - (address & 0x3FFF)) / 4; 
+    }
+
+    completion[0] = (0xDC << 24) | current_length;
+    completion[1] = (220 << 16) | (byte_count & 0xFFFF);  
+    completion[2] = (requester_id << 16) | (tag << 8) | lower_address;  
+
+    for (unsigned int i = 0; i < current_length; i++) 
+    {
+        completion[3 + i] = *((unsigned int *)(memory + address + i * 4));
+    }
+
+    return completion;
 }
