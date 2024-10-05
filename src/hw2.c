@@ -98,16 +98,21 @@ void store_values(unsigned int packets[], char *memory)
         packet_start += 3 + length;
     }
 }
-unsigned int* create_completion(unsigned int packets[], const char *memory) {
+unsigned int* create_completion(unsigned int packets[], const char *memory) 
+{
     unsigned int length = packets[0] & 0xFFF;
     unsigned int address = packets[2] & 0xFFFFFFFC;
-
+    unsigned int requester_id = packets[1] >> 16;
+    unsigned int tag = (packets[1] >> 8) & 0xFF;
+    unsigned int lower_address = address & 0x7F;
+    unsigned int byte_count = length * 4;
+    
     unsigned int *completions = (unsigned int*)malloc((length + 3) * sizeof(unsigned int));
     unsigned int index = 0;
 
-    completions[index++] = (0xA << 24) | length;
-    completions[index++] = (220 << 16) | (length * 4);
-    completions[index++] = packets[1] & 0xFFFF00FF;
+    completions[index++] = (0xA << 24) | length;  
+    completions[index++] = (220 << 16) | byte_count;  
+    completions[index++] = (requester_id << 16) | (tag << 8) | lower_address; 
 
     unsigned int bytes_read = 0;
     while (bytes_read < length * 4) {
@@ -116,8 +121,14 @@ unsigned int* create_completion(unsigned int packets[], const char *memory) {
         completions[index++] = data;
         bytes_read += 4;
 
-        if (((address + bytes_read) & 0x3FFF) == 0) {
-            break;
+        if (((address + bytes_read) & 0x3FFF) == 0) 
+        {
+            byte_count -= bytes_read; 
+            address += bytes_read;  
+            completions = realloc(completions, (index + 3 + length - bytes_read / 4) * sizeof(unsigned int)); 
+            completions[index++] = (0xA << 24) | (length - bytes_read / 4); 
+            completions[index++] = (220 << 16) | byte_count;
+            completions[index++] = (requester_id << 16) | (tag << 8) | (address & 0x7F); 
         }
     }
 
