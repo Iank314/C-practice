@@ -5,45 +5,30 @@
 
 #include "hw2.h"
 
-void print_packet(unsigned int *packet) 
+void print_packet(unsigned int packet[]) 
 {
-    int packet_type = *(packet);
+    int packet_type = (*(packet) >> 24) & 0xFF;
 
-    if ((packet_type & 0x80000000) == 0 && ((packet_type & 0x40000000) != 0 || (packet_type & 0x40000000) == 0) && (packet_type & 0x3FFFFFFF) == 0) 
-    {
-        packet_type = (packet_type >> 10) & 0xFF;
-    } 
-    else 
-    {
-        printf("Error: Invalid packet type\n");
-        return;
-    }
-
-    int length = *(packet) & 0xFF;
-    unsigned int address = *(packet + 2);
-   
-    int requester_id = (*(packet + 1) >> 16);
-    int tag = (*(packet + 1) >> 8) & 0xFF;
-    int last_be = (*(packet + 1) >> 4) & 0xF;
-    int first_be = (*(packet + 1) & 0xF);
-
-    if (packet_type == 0x40) 
+    if ((packet_type & 0xC0) == 0x40) 
     {
         printf("Packet Type: Write\n");
-    } 
-    else if (packet_type == 0x00) 
+    }
+    else if ((packet_type & 0xC0) == 0x00) 
     {
         printf("Packet Type: Read\n");
-    } 
-    else if (packet_type == 0xDC) 
-    {
-        printf("Packet Type: Completion\n");
     } 
     else 
     {
         printf("Error: Invalid packet type 0x%X\n", packet_type);
         return;
     }
+
+    int length = *(packet) & 0xFF;
+    unsigned int address = *(packet + 2);
+    int requester_id = (*(packet + 1) >> 16);
+    int tag = (*(packet + 1) >> 8) & 0xFF;
+    int last_be = (*(packet + 1) >> 4) & 0xF;
+    int first_be = (*(packet + 1) & 0xF);
 
     printf("Address: %d\n", address);
     printf("Length: %d\n", length);
