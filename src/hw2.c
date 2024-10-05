@@ -148,6 +148,9 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
         address += current_length * 4;
         byte_count -= current_length * 4;
         length -= current_length;
+
+        completion_packets[completion_packet_index + 2] = (completion_packets[completion_packet_index + 2] & ~0x7F) | (address & 0x7F);
+
         completion_packet_index += 3 + current_length;
     }
 
