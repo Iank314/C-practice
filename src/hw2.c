@@ -101,33 +101,37 @@ void store_values(unsigned int packets[], char *memory)
 unsigned int* create_completion(unsigned int packets[], const char *memory) 
 {
     unsigned int address = packets[2];
-    unsigned int length = packets[0] & 0x3FF;  
+    unsigned int length = packets[0] & 0x3FF;
     unsigned int requester_id = (packets[1] >> 16) & 0xFFFF;
     unsigned int tag = (packets[1] >> 8) & 0xFF;
-    
-    unsigned int lower_address = address & 0x7F;
-    unsigned int byte_count = length * 4;
 
-    unsigned int *completion = (unsigned int *) malloc((3 + length) * sizeof(unsigned int));
-    if (!completion) 
+    unsigned int byte_count = length * 4;
+    unsigned int lower_address = address & 0x7F;
+
+    unsigned int *completion_packets = (unsigned int *) malloc(30 * (3 + length) * sizeof(unsigned int));
+    if (!completion_packets) 
     {
         return NULL;
     }
 
     unsigned int current_length = length;
+
     if ((address & 0x3FFF) + (current_length * 4) > 0x4000) 
     {
-        current_length = (0x4000 - (address & 0x3FFF)) / 4; 
+        current_length = (0x4000 - (address & 0x3FFF)) / 4;
     }
 
-    completion[0] = (0xDC << 24) | current_length;
-    completion[1] = (220 << 16) | (byte_count & 0xFFFF);  
-    completion[2] = (requester_id << 16) | (tag << 8) | lower_address;  
+    unsigned int completion_packet_index = 0;
+
+    completion_packets[completion_packet_index++] = (0xDC << 24) | current_length;
+    completion_packets[completion_packet_index++] = (220 << 24) | (byte_count & 0xFFF);
+    completion_packets[completion_packet_index++] = (requester_id << 16) | (tag << 8) | lower_address;
 
     for (unsigned int i = 0; i < current_length; i++) 
     {
-        completion[3 + i] = *((unsigned int *)(memory + address + i * 4));
+        int mem_index = address + (i * 4);
+        completion_packets[completion_packet_index++] = *((unsigned int *)(memory + mem_index));
     }
 
-    return completion;
+    return completion_packets;
 }
