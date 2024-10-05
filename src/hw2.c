@@ -5,73 +5,56 @@
 
 #include "hw2.h"
 
-void print_packet(unsigned int packet[]) 
+void print_packet(unsigned int *packet) 
 {
-    int type = (packet[0] >> 24) & 0xFF;
-    int length = packet[0] & 0xFF;
-    
-    if (type == 0x00) 
-    {
-        printf("Packet Type: Read\n");
-    } 
-    else if (type == 0x40) 
+    int packet_type = (*(packet) >> 24) & 0xFF;
+    int length = *(packet) & 0xFF;
+    unsigned int address = *(packet + 2);
+   
+    int requester_id = (*(packet + 1) >> 16);
+    int tag = (*(packet + 1) >> 8) & 0xFF;
+    int last_be = (*(packet + 1) >> 4) & 0xF;
+    int first_be = (*(packet + 1) & 0xF);
+
+    if (packet_type == 0x40) 
     {
         printf("Packet Type: Write\n");
     } 
-    else if (type == 0xDC) 
+    else if (packet_type == 0x00) 
+    {
+        printf("Packet Type: Read\n");
+    } 
+    else if (packet_type == 0xDC) 
     {
         printf("Packet Type: Completion\n");
-    }
+    } 
     else 
     {
-        printf("No Output (invalid packet)\n");
+        printf("Error: Invalid packet type 0x%X\n", packet_type);
         return;
     }
 
-    int address = (packet[2] >> 2); 
     printf("Address: %d\n", address);
-
     printf("Length: %d\n", length);
+    printf("Requester ID: %d\n", requester_id);
+    printf("Tag: %d\n", tag);
+    printf("Last BE: %d\n", last_be);
+    printf("1st BE: %d\n", first_be);
 
-    if (type == 0x00 || type == 0x40) 
-    {
-        int requesterID = (packet[1] >> 16) & 0xFFFF;
-        int tag = (packet[1] >> 8) & 0xFF;
-        printf("Requester ID: %d\n", requesterID);
-        printf("Tag: %d\n", tag);
-    } 
-    else if (type == 0xDC) 
-    {
-        int requesterID = (packet[2] >> 16) & 0xFFFF;
-        int tag = (packet[2] >> 8) & 0xFF;
-        printf("Requester ID: %d\n", requesterID);
-        printf("Tag: %d\n", tag);
-    }
-
-    if (type == 0x00 || type == 0x40) 
-    {
-        int lastBE = (packet[1] >> 4) & 0xF;
-        int firstBE = packet[1] & 0xF;
-        printf("Last BE: %d\n", lastBE);
-        printf("1st BE: %d\n", firstBE);
-    }
-
-    if (type == 0x40) 
+    if (packet_type == 0x40) 
     {
         printf("Data: ");
         for (int i = 0; i < length; i++) 
         {
-            int data = packet[3 + i]; 
-            printf("%d ", data);
+            printf("%d ", (int)*(packet + 3 + i));
         }
         printf("\n");
-    }
+    } 
     else 
     {
         printf("Data: \n");
     }
 }
-
 void store_values(unsigned int packets[], char *memory)
 {
     int packet_start = 0;
