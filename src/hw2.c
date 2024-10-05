@@ -98,7 +98,7 @@ void store_values(unsigned int packets[], char *memory)
         packet_start += 3 + length;
     }
 }
-unsigned int* create_completion(unsigned int packets[], const char *memory)
+unsigned int* create_completion(unsigned int packets[], const char *memory) 
 {
     int packet_type = (packets[0] >> 24) & 0xFF;
     if (packet_type != 0x00) 
@@ -128,15 +128,15 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
 
         completion_packets[completion_packet_index] = (0xDC << 24) | current_length;
         completion_packets[completion_packet_index + 1] = (220 << 24) | (requester_id << 16) | (tag << 8) | ((byte_count > 0xFFF) ? 0xFFF : byte_count); 
-        completion_packets[completion_packet_index + 2] = address & 0x7FFFFFFF; 
+        completion_packets[completion_packet_index + 2] = address & 0x7FFFFFFF;
 
-        for (int i = 0; i < current_length; i++)
+        for (int i = 0; i < current_length; i++) 
         {
             int mem_index = address + (i * 4);
             
             unsigned int data = 0;
             if (mem_index + 3 < 1000000) 
-            {  
+            {
                 data = (unsigned int)((memory[mem_index] & 0xFF) |
                                       (memory[mem_index + 1] & 0xFF) << 8 |
                                       (memory[mem_index + 2] & 0xFF) << 16 |
