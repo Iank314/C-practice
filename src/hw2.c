@@ -109,34 +109,43 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
     unsigned int byte_count = length * 4;
     unsigned int* completion = (unsigned int*)malloc((3 + length) * sizeof(unsigned int));
 
-    completion[0] = (0x50 << 24) | length;
-    completion[1] = (220 << 16) | byte_count;
-    completion[2] = (requester_id << 16) | (tag << 8) | lower_address;
+    completion[0] = (0x50 << 24) | length;  
+    completion[1] = (220 << 16) | byte_count;  
+    completion[2] = (requester_id << 16) | (tag << 8) | lower_address;  
 
     unsigned int boundary = 0x4000;
     unsigned int bytes_to_boundary = boundary - (address % boundary);
+    unsigned int data_offset = 0;
 
-    for (unsigned int i = 0; i < length; i++) 
+    if (bytes_to_boundary < byte_count) 
     {
-        unsigned int mem_index = address + i * 4;
+        unsigned int split_length = bytes_to_boundary / 4;
 
-        if ((mem_index + 4) > boundary) 
-        {
-            unsigned int split_length = (bytes_to_boundary / 4);
-
-            unsigned int* new_completion = (unsigned int*)malloc((3 + split_length) * sizeof(unsigned int));
-            new_completion[0] = (0x50 << 24) | split_length;
-            new_completion[1] = (220 << 16) | (split_length * 4);
-            new_completion[2] = (requester_id << 16) | (tag << 8) | ((mem_index & 0x7F) + 4);
-
-            for (unsigned int j = 0; j < split_length; j++) 
-            {
-                new_completion[3 + j] = *(unsigned int *)(memory + mem_index + j * 4);
-            }
-
-            return new_completion;
+        for (unsigned int i = 0; i < split_length; i++) {
+            completion[3 + i] = *(unsigned int*)(memory + address + data_offset);
+            data_offset += 4;
         }
-        completion[3 + i] = *(unsigned int *)(memory + mem_index);
+
+        byte_count -= bytes_to_boundary;
+        lower_address = 0;  
+
+        unsigned int* second_completion = (unsigned int*)malloc((3 + (length - split_length)) * sizeof(unsigned int));
+        second_completion[0] = (0x50 << 24) | (length - split_length);
+        second_completion[1] = (220 << 16) | byte_count;
+        second_completion[2] = (requester_id << 16) | (tag << 8) | lower_address;
+
+        for (unsigned int i = 0; i < (length - split_length); i++) 
+        {
+            second_completion[3 + i] = *(unsigned int*)(memory + address + data_offset);
+            data_offset += 4;
+        }
+
+        return second_completion;
+    }
+
+    for (unsigned int i = 0; i < length; i++) {
+        completion[3 + i] = *(unsigned int*)(memory + address + data_offset);
+        data_offset += 4;
     }
 
     return completion;
