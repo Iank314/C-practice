@@ -109,9 +109,9 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
     unsigned int byte_count = length * 4;
     unsigned int* completion = (unsigned int*)malloc((3 + length) * sizeof(unsigned int));
 
-    completion[0] = (0x50 << 24) | length;  
-    completion[1] = (220 << 16) | byte_count;  
-    completion[2] = (requester_id << 16) | (tag << 8) | lower_address;  
+    completion[0] = (0x50 << 24) | length;
+    completion[1] = (220 << 16) | byte_count;
+    completion[2] = (requester_id << 16) | (tag << 8) | lower_address;
 
     unsigned int boundary = 0x4000;
     unsigned int bytes_to_boundary = boundary - (address % boundary);
