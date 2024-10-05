@@ -27,13 +27,10 @@ void print_packet(unsigned int packet[])
             printf("Last BE: %d\n", last_be);
             printf("1st BE: %d\n", first_be);
             printf("Data: ");
-            if ((packet_type >> 20) == 1) 
+            for (int i = 0; i < (int)length; i++) 
             {
-                for (int i = 0; i < (int)length; i++) 
-                {
-                    printf("%d ", (int)(packet[3 + i]));
-                }                   
-            } 
+                printf("%d ", (int)(packet[3 + i]));
+            }
             printf("\n");
         } 
         else 
@@ -45,15 +42,7 @@ void print_packet(unsigned int packet[])
             printf("Tag: %d\n", tag);
             printf("Last BE: %d\n", last_be);
             printf("1st BE: %d\n", first_be);
-            printf("Data: ");
-             if ((packet_type >> 20) == 1) 
-             {
-                for (int i = 0; i < (int)length; i++) 
-                {
-                    printf("%d ", (int)(packet[3 + i]));
-                }
-                    
-             }   
+            printf("Data: \n");  // Add a newline after "Data:" for Read packets
         }
     }
     else 
