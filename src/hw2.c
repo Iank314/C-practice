@@ -8,7 +8,7 @@
 void print_packet(unsigned int packet[]) 
 {
     unsigned int packet_type = *packet >> 10;
-    unsigned int length = *(packet) & 0xFF;
+    unsigned int length = *(packet) & 0x3FF;
     unsigned int address = *(packet + 2);
     unsigned int requester_id = (*(packet + 1) >> 16);
     unsigned int tag = (*(packet + 1) >> 8) & 0xFF;
@@ -42,7 +42,7 @@ void print_packet(unsigned int packet[])
             printf("Tag: %d\n", tag);
             printf("Last BE: %d\n", last_be);
             printf("1st BE: %d\n", first_be);
-            printf("Data: \n");  // Add a newline after "Data:" for Read packets
+            printf("Data: \n");  
         }
     }
     else 
