@@ -107,7 +107,7 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
     unsigned int lower_address = address & 0x7F;
     
     unsigned int remaining_bytes = length * 4;
-    unsigned int* completion = (unsigned int*)malloc((3 + length) * sizeof(unsigned int));
+    unsigned int* completion = (unsigned int*)malloc(30 * (3 + length) * sizeof(unsigned int));
 
     completion[0] = (0x50 << 24) | length;
     completion[1] = (220 << 16) | remaining_bytes;
@@ -129,7 +129,8 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
             new_completion[1] = (220 << 16) | remaining_bytes;
             new_completion[2] = (requester_id << 16) | (tag << 8) | (address & 0x7F);
 
-            for (unsigned int j = 0; j < split_length; j++) {
+            for (unsigned int j = 0; j < split_length; j++) 
+            {
                 new_completion[3 + j] = *(unsigned int *)(memory + mem_index + j * 4);
             }
 
