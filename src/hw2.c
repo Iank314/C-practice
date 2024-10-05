@@ -54,7 +54,6 @@ void print_packet(unsigned int packet[])
                 }
                     
              }   
-             printf("\n");
         }
     }
     else 
@@ -62,9 +61,6 @@ void print_packet(unsigned int packet[])
         printf("Error: Invalid packet type\n");
         return;
     }
-
-   
-        printf("\n");
 }
 void store_values(unsigned int packets[], char *memory)
 {
