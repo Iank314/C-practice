@@ -32,9 +32,9 @@ void print_packet(unsigned int packet[])
                 for (int i = 0; i < (int)length; i++) 
                 {
                     printf("%d ", (int)(packet[3 + i]));
-                }
-                    printf("\n");
+                }                   
             } 
+            printf("\n");
         } 
         else 
         {
@@ -52,8 +52,9 @@ void print_packet(unsigned int packet[])
                 {
                     printf("%d ", (int)(packet[3 + i]));
                 }
-                    printf("\n");
+                    
              }   
+             printf("\n");
         }
     }
     else 
