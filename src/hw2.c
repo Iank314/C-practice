@@ -7,61 +7,70 @@
 
 void print_packet(unsigned int packet[]) 
 {
-    if (((packet[0] >> 24) & 0xFF) == 0x00) 
+    int type = (packet[0] >> 24) & 0xFF;
+    int length = packet[0] & 0xFF;
+    
+    if (type == 0x00) 
     {
         printf("Packet Type: Read\n");
     } 
-    else if (((packet[0] >> 24) & 0xFF) == 0x40) 
+    else if (type == 0x40) 
     {
         printf("Packet Type: Write\n");
     } 
-    else if (((packet[0] >> 24) & 0xFF) == 0xDC) 
+    else if (type == 0xDC) 
     {
         printf("Packet Type: Completion\n");
     }
-     else 
-     {
+    else 
+    {
         printf("No Output (invalid packet)\n");
         return;
     }
 
-    printf("Address: %u\n", (int)packet[2]);
+    int address = packet[2] & 0xFFFFFFFC; 
+    printf("Address: %d\n", address);
 
-    int length = packet[0] & 0xFF;
-    printf("Length: %u\n", length);
+    printf("Length: %d\n", length);
 
-    if (((packet[0] >> 24) & 0xFF) == 0x00 || ((packet[0] >> 24) & 0xFF) == 0x40) 
+    if (type == 0x00 || type == 0x40) 
     {
-        printf("Requester ID: %u\n", (packet[1] >> 16) & 0xFFFF);
-        printf("Tag: %u\n", (packet[1] >> 8) & 0xFF);
+        int requesterID = (packet[1] >> 16) & 0xFFFF;
+        int tag = (packet[1] >> 8) & 0xFF;
+        printf("Requester ID: %d\n", requesterID);
+        printf("Tag: %d\n", tag);
     } 
-    else if (((packet[0] >> 24) & 0xFF) == 0xDC) 
+    else if (type == 0xDC) 
     {
-        printf("Requester ID: %u\n", (packet[2] >> 16) & 0xFFFF);
-        printf("Tag: %u\n", (packet[2] >> 8) & 0xFF);
+        int requesterID = (packet[2] >> 16) & 0xFFFF;
+        int tag = (packet[2] >> 8) & 0xFF;
+        printf("Requester ID: %d\n", requesterID);
+        printf("Tag: %d\n", tag);
     }
 
-    if (((packet[0] >> 24) & 0xFF) == 0x00 || ((packet[0] >> 24) & 0xFF) == 0x40) 
+    if (type == 0x00 || type == 0x40) 
     {
-        printf("Last BE: %u\n", (packet[1] >> 4) & 0xF);
-        printf("1st BE: %u\n", packet[1] & 0xF);
+        int lastBE = (packet[1] >> 4) & 0xF;
+        int firstBE = packet[1] & 0xF;
+        printf("Last BE: %d\n", lastBE);
+        printf("1st BE: %d\n", firstBE);
     }
 
-    if (((packet[0] >> 24) & 0xFF) == 0x40) 
+    if (type == 0x40) 
     {
         printf("Data: ");
         for (int i = 0; i < length; i++) 
         {
-            printf("%d ", packet[3 + i]);
+            int data = packet[3 + i]; 
+            printf("%d ", data);
         }
         printf("\n");
-    } 
+    }
     else 
     {
         printf("Data: \n");
     }
 }
-
 
 void store_values(unsigned int packets[], char *memory)
 {
