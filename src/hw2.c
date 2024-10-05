@@ -105,32 +105,38 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
     unsigned int requester_id = packets[1] >> 16;
     unsigned int tag = (packets[1] >> 8) & 0xFF;
     unsigned int lower_address = address & 0x7F;
-
-    unsigned int byte_count = length * 4;
+    
+    unsigned int remaining_bytes = length * 4;
     unsigned int* completion = (unsigned int*)malloc((3 + length) * sizeof(unsigned int));
-    
+
     completion[0] = (0x50 << 24) | length;
-    completion[1] = (220 << 16) | byte_count;
+    completion[1] = (220 << 16) | remaining_bytes;
     completion[2] = (requester_id << 16) | (tag << 8) | lower_address;
-    
-    for (unsigned int i = 0; i < length; i++) {
+
+    unsigned int boundary = 0x4000;
+    unsigned int max_bytes_before_boundary = boundary - (address % boundary);
+
+    for (unsigned int i = 0; i < length; i++) 
+    {
         unsigned int mem_index = address + i * 4;
-        if ((address + i * 4) >= 0x4000) 
+        
+        if ((mem_index + 4) > boundary) 
         {
-            unsigned int split_length = length - i;
-            unsigned int* new_completion = (unsigned int*)malloc((3 + split_length) * sizeof(unsigned int));
-            new_completion[0] = (0x50 << 24) | split_length;
-            new_completion[1] = (220 << 16) | (split_length * 4);
-            new_completion[2] = (requester_id << 16) | (tag << 8) | ((address + i * 4) & 0x7F);
+            unsigned int split_length = (max_bytes_before_boundary / 4);
             
+            unsigned int* new_completion = (unsigned int*)malloc(30 * (3 + split_length) * sizeof(unsigned int));
+            new_completion[0] = (0x50 << 24) | split_length;
+            new_completion[1] = (220 << 16) | remaining_bytes;
+            new_completion[2] = (requester_id << 16) | (tag << 8) | (address & 0x7F);
+
             for (unsigned int j = 0; j < split_length; j++) {
-                mem_index = address + (i + j) * 4;
-                new_completion[3 + j] = *(unsigned int *)(memory + mem_index);
+                new_completion[3 + j] = *(unsigned int *)(memory + mem_index + j * 4);
             }
+
             return new_completion;
         }
         completion[3 + i] = *(unsigned int *)(memory + mem_index);
     }
-    
+
     return completion;
 }
