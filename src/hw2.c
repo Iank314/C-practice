@@ -28,7 +28,7 @@ void print_packet(unsigned int packet[])
         return;
     }
 
-    int address = packet[2] & 0xFFFFFFFC; 
+    int address = (packet[2] >> 2); 
     printf("Address: %d\n", address);
 
     printf("Length: %d\n", length);
