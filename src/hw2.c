@@ -106,7 +106,6 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
 
     while (((packets[index] >> 30) & 0x3) == 0x0) 
     {
-
         unsigned int length = packets[index] & 0x3FF;
         unsigned int address = packets[index + 2];
         unsigned int header_1 = packets[index + 1];
@@ -118,21 +117,21 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
         while (remaining_bytes > 0) 
         {
             unsigned int current_length;
-
-            if (((address & 0x3FFF) + remaining_bytes) > 0x4000) 
+            unsigned int boundary = (address & ~0x3FFF) + 0x4000;
+            if (address + remaining_bytes > boundary) 
             {
-                current_length = (0x4000 - (address & 0x3FFF)) / 4;
+                current_length = (boundary - address) / 4;
             } 
             else 
             {
                 current_length = remaining_bytes / 4;
             }
 
+            unsigned int lower_address = address & 0x7F;
+
             completionpackets[indexforcompletion++] = (0x25 << 25) | (current_length);
-
-            completionpackets[indexforcompletion++] = (220 << 16) | (remaining_bytes);
-
-            completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | ((address & 0x7F));
+            completionpackets[indexforcompletion++] = (220 << 16) | remaining_bytes;
+            completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | lower_address;
 
             for (unsigned int i = 0; i < current_length; i++) 
             {
@@ -140,11 +139,18 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
                                     ((unsigned char)memory[address + 1] << 8) |
                                     ((unsigned char)memory[address + 2] << 16) |
                                     ((unsigned char)memory[address + 3] << 24);
+
+                if (remaining_bytes < 4) 
+                {
+                    unsigned int valid_bytes = remaining_bytes;  
+                    unsigned int mask = (1 << (valid_bytes * 8)) - 1;
+                    data &= mask;
+                }
+
                 completionpackets[indexforcompletion++] = data;
                 address += 4;
+                remaining_bytes -= 4;  
             }
-
-            remaining_bytes -= current_length * 4;
 
             if ((address & 0x3FFF) == 0) 
             {
