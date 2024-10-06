@@ -158,5 +158,5 @@ unsigned int* create_completion(unsigned int packets[], const char *memory) {
         index += 3;
     }
 
-    return completionpackets - 4;
+    return completionpackets;
 }
