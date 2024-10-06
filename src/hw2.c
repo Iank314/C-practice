@@ -140,7 +140,7 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
                 unsigned int current_length = (traverse < max_length) ? traverse : max_length;
 
                 unsigned int lower_address = (address == holder) ? (holder & 0x7F) : 0x00;
-                completionpackets[indexforcompletion++] = (0x4A << 24) | current_length;
+                completionpackets[indexforcompletion++] = (0x4A << 25) | current_length;
                 completionpackets[indexforcompletion++] = (220 << 16) | byte_count;
                 completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | lower_address;
 
