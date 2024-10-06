@@ -136,20 +136,13 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
             unsigned int lower_address = address & 0x7F;
 
             completionpackets[indexforcompletion++] = (0x25 << 25) | (current_length);
-
-            if (remaining_bytes == byte_count) 
-            {
+            if (remaining_bytes == byte_count) {
                 completionpackets[indexforcompletion++] = (220 << 16) | initial_byte_count;
-            } 
-            else if (remaining_bytes <= final_byte_count) 
-            {
+            } else if (remaining_bytes <= final_byte_count) {
                 completionpackets[indexforcompletion++] = (220 << 16) | final_byte_count;
-            } 
-            else 
-            {
+            } else {
                 completionpackets[indexforcompletion++] = (220 << 16) | remaining_bytes;
             }
-
             completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | lower_address;
 
             for (unsigned int i = 0; i < current_length; i++) 
