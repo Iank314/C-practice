@@ -118,30 +118,31 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
 
         for (int i = 0; i < 4; i++) 
         {
-           if (first_be & (1 << i)) 
-           {
-               byte_count++;
-           }
-           if (last_be & (1 << i)) 
-           {
-               byte_count++;
-           }
-}
+        if (first_be & (1 << i)) 
+        {
+           byte_count++;
+        }
+        if (last_be & (1 << i)) 
+        {
+            byte_count++;
+        }
+        }
 
         if ((address & 0xFFFFC000) != ((address + (length * 4) - 1) & 0xFFFFC000)) 
         {
             unsigned int traverse = length;
             unsigned int holder = address;
+            unsigned int byte = byte_count;
 
             while (traverse > 0) 
             {
                 unsigned int boundary = (holder & 0xFFFFC000) + 0x4000;
                 unsigned int max_length = (boundary - holder) / 4;
                 unsigned int current_length = (traverse < max_length) ? traverse : max_length;
-
                 unsigned int lower_address = (address == holder) ? (holder & 0x7F) : 0x00;
-                completionpackets[indexforcompletion++] = (0x4A << 25) | current_length;
-                completionpackets[indexforcompletion++] = (220 << 16) | byte_count;
+
+                completionpackets[indexforcompletion++] = (0x4A << 24) | current_length;
+                completionpackets[indexforcompletion++] = (220 << 16) | byte;
                 completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | lower_address;
 
                 for (unsigned int i = 0; i < current_length; i++) 
@@ -154,7 +155,16 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
 
                 traverse -= current_length;
                 holder += (current_length * 4);
-                byte_count -= current_length * 4;
+                
+                unsigned int bit_count = 0;
+                for (int j = 0; j < 4; j++) 
+                {
+                if (first_be & (1 << j)) 
+                {
+                   bit_count++;
+                }
+                }
+                byte = byte_count - ((current_length - 1) * 4) - bit_count;
             }
         } 
         else 
