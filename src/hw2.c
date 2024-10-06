@@ -120,7 +120,9 @@ unsigned int* create_completion(unsigned int packets[], const char *memory) {
             if (((address & 0x3FFF) + remaining_bytes) > 0x4000)
              {
                 current_length = (0x4000 - (address & 0x3FFF)) / 4;
-            } else {
+            } 
+            else 
+            {
                 current_length = remaining_bytes / 4;
             }
 
@@ -139,12 +141,10 @@ unsigned int* create_completion(unsigned int packets[], const char *memory) {
 
             remaining_bytes -= current_length * 4;
 
-            if ((address & 0x3FFF) == 0) {
-                address += 4;
-            }
-
-            if ((address >> 22) == 0x0 || (address >> 22) == 0x1) {
-                if ((address & 0x3FFFFF) == 0) {
+            if ((address >> 22) == 0x0 || (address >> 22) == 0x1) 
+            {
+                if ((address & 0x3FFFFF) == 0) 
+                {
                     break;
                 }
             }
