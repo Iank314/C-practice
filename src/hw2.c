@@ -102,19 +102,18 @@ void store_values(unsigned int packets[], char *memory)
 unsigned int* create_completion(unsigned int packets[], const char *memory) 
 {
     int index = 0;
-    int indexforcompletion = 0;
-    unsigned int *completionpackets = (unsigned int*)malloc(1000000);
+    int complete = 0;
+    unsigned int *completionpackets = (unsigned int*)malloc(10000000);
 
-    while (((packets[index] >> 30) & 0x3) == 0x0) 
+    while(((packets[index] >> 30) & 0x3) == 0x0) 
     {
-        unsigned int length = packets[index] & 0x3FF;
-        unsigned int address = packets[index + 2];
-        unsigned int header_1 = packets[index + 1];
-        unsigned int requester_id = (header_1 >> 16);
-        unsigned int tag = (header_1 >> 8) & 0xFF;
-        unsigned int first_be = header_1 & 0xF;
-        unsigned int last_be = (header_1 >> 4) & 0xF;
-        unsigned int byte_count = length - 8;
+        unsigned int length = packets[index] & ((1 << 10) - 1);
+        unsigned int requester_id = (packets[index + 1] >> 16) & ((1 << 16) - 1);
+        unsigned int tag = (packets[index + 1] >> 8) & ((1 << 8) - 1);
+        unsigned int last_be = (packets[index + 1] >> 4) & ((1 << 4) - 1);
+        unsigned int first_be = packets[index + 1] & ((1 << 4) - 1);
+        unsigned int address = *(packets + index + 2);
+        unsigned int byte_count = (length - 2) << 2;
 
         for (int i = 0; i < 4; i++) 
         {
@@ -127,62 +126,80 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
                 byte_count++;
             }
         }
-
-        if ((address & 0xFFFFC000) == ((address + (length * 4) - 1) & 0xFFFFC000)) 
+        if ((address & 0xFFFFC000) != ((address + (length * 4) - 1) & 0xFFFFC000)) 
         {
-            completionpackets[indexforcompletion++] = (0x4A << 24) | length;
-            completionpackets[indexforcompletion++] = (220 << 16) | byte_count;
-            completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | (address & 0x7F);
-
-            for (unsigned int counter = 0; counter < length; counter++) 
-            {
-                completionpackets[indexforcompletion++] = ((unsigned char)memory[address + (counter * 4) + 3] << 24) |
-                                                          ((unsigned char)memory[address + (counter * 4) + 2] << 16) |
-                                                          ((unsigned char)memory[address + (counter * 4) + 1] << 8) |
-                                                          ((unsigned char)memory[address + (counter * 4)]);
-            }
-        } 
-        else 
-        {
-            unsigned int traverse = length;
+            unsigned int loop = length;
             unsigned int holder = address;
             unsigned int byte = byte_count;
-
-            while (traverse > 0) 
+            while(loop > 0) 
             {
-                unsigned int boundary = (holder & 0xFFFFC000) + 0x4000;
-                unsigned int max_length = (boundary - holder) / 4;
-                unsigned int current_length = (traverse < max_length) ? traverse : max_length;
-                unsigned int lower_address = (address == holder) ? (holder & 0x7F) : 0x00;
+               unsigned int boundary = (holder & 0xFFFFC000) + 0x4000;
+               unsigned int max_length = (boundary - holder) / 4;
+               unsigned int packet_length;
+               if (loop < max_length) 
+               {
+                     packet_length = loop;
+               } 
+               else  
+               {
+                  packet_length = max_length;
+               }
 
-                completionpackets[indexforcompletion++] = (0x4A << 24) | current_length;
-                completionpackets[indexforcompletion++] = (220 << 16) | byte;
-                completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | lower_address;
-
-                for (unsigned int i = 0; i < current_length; i++) 
+                unsigned int loweraddress;
+                if (address == holder) 
                 {
-                    completionpackets[indexforcompletion++] = ((unsigned char)memory[holder + (i * 4) + 3] << 24) |
-                                                              ((unsigned char)memory[holder + (i * 4) + 2] << 16) |
-                                                              ((unsigned char)memory[holder + (i * 4) + 1] << 8) |
-                                                              ((unsigned char)memory[holder + (i * 4)]);
+                    loweraddress = holder & 0x7F;
+                } 
+                else 
+                {
+                   loweraddress = 0x00;
                 }
+                completionpackets[complete] = (0x4A << 24) | packet_length;
+                completionpackets[complete + 1] = (220 << 16) | byte;
+                completionpackets[complete + 2] = (requester_id << 16) | (tag << 8) | loweraddress;
+                unsigned char *ptr = (unsigned char *)(memory + holder);
+                for (unsigned int i = 0; i < packet_length; i++) 
+                {
+                   completionpackets[complete + 3 + i] = (ptr[3] << 24) | 
+                                          (ptr[2] << 16) | 
+                                          (ptr[1] << 8)  | 
+                                           ptr[0];
+                    ptr += 4;
+                }
+                complete += (3 + packet_length);
+                loop -= packet_length;
+                holder += (packet_length * 4);
 
-                traverse -= current_length;
-                holder += (current_length * 4);
-                
                 unsigned int bit_count = 0;
-                for (int j = 0; j < 4; j++) 
+                for(int j = 0; j < 4; j++) 
                 {
                     if (first_be & (1 << j)) 
                     {
                         bit_count++;
                     }
                 }
-                byte = byte_count - ((current_length - 1) * 4) - bit_count;
+                byte = byte_count - ((packet_length - 1) * 4) - bit_count;
             }
         }
+ else
+ {
+     completionpackets[complete] = ((0x4A & 0xFF) << 24) | (length & 0x3FF); 
+     completionpackets[complete + 1] = ((220 & 0xFFFF) << 16) | (byte_count & 0xFFFF);
+     completionpackets[complete + 2] = ((requester_id & 0xFFFF) << 16) | ((tag & 0xFF) << 8) | (address & 0x7F);
 
-        index += 3;
+       for (unsigned int data = 0; data < length; ++data)
+         {
+            unsigned int mem_address = address + (data * 4);
+             completionpackets[complete + 3 + data] = 
+            ((unsigned int)(memory[mem_address + 3] & 0xFF) << 24) | 
+            ((unsigned int)(memory[mem_address + 2] & 0xFF) << 16) | 
+            ((unsigned int)(memory[mem_address + 1] & 0xFF) << 8) | 
+            ((unsigned int)(memory[mem_address] & 0xFF));
+         }
+
+         complete += (3 + length);
+ }
+         index += 3;
     }
 
     return completionpackets;
