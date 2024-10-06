@@ -112,8 +112,13 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
         unsigned int header_1 = packets[index + 1];
         unsigned int requester_id = (header_1 >> 16);
         unsigned int tag = (header_1 >> 8) & 0xFF;
+        unsigned int first_be = header_1 & 0xF;
+        unsigned int last_be = (header_1 >> 4) & 0xF;
         unsigned int byte_count = length * 4;
         unsigned int remaining_bytes = byte_count;
+
+        unsigned int initial_byte_count = __builtin_popcount(first_be) * 4;
+        unsigned int final_byte_count = __builtin_popcount(last_be) * 4;
 
         while (remaining_bytes > 0) 
         {
@@ -131,7 +136,20 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
             unsigned int lower_address = address & 0x7F;
 
             completionpackets[indexforcompletion++] = (0x25 << 25) | (current_length);
-            completionpackets[indexforcompletion++] = (220 << 16) | remaining_bytes;
+
+            if (remaining_bytes == byte_count) 
+            {
+                completionpackets[indexforcompletion++] = (220 << 16) | initial_byte_count;
+            } 
+            else if (remaining_bytes <= final_byte_count) 
+            {
+                completionpackets[indexforcompletion++] = (220 << 16) | final_byte_count;
+            } 
+            else 
+            {
+                completionpackets[indexforcompletion++] = (220 << 16) | remaining_bytes;
+            }
+
             completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | lower_address;
 
             for (unsigned int i = 0; i < current_length; i++) 
