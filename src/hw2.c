@@ -118,17 +118,31 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
 
         for (int i = 0; i < 4; i++) 
         {
-        if (first_be & (1 << i)) 
-        {
-           byte_count++;
-        }
-        if (last_be & (1 << i)) 
-        {
-            byte_count++;
-        }
+            if (first_be & (1 << i)) 
+            {
+                byte_count++;
+            }
+            if (last_be & (1 << i)) 
+            {
+                byte_count++;
+            }
         }
 
-        if ((address & 0xFFFFC000) != ((address + (length * 4) - 1) & 0xFFFFC000)) 
+        if ((address & 0xFFFFC000) == ((address + (length * 4) - 1) & 0xFFFFC000)) 
+        {
+            completionpackets[indexforcompletion++] = (0x4A << 24) | length;
+            completionpackets[indexforcompletion++] = (220 << 16) | byte_count;
+            completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | (address & 0x7F);
+
+            for (unsigned int counter = 0; counter < length; counter++) 
+            {
+                completionpackets[indexforcompletion++] = ((unsigned char)memory[address + (counter * 4) + 3] << 24) |
+                                                          ((unsigned char)memory[address + (counter * 4) + 2] << 16) |
+                                                          ((unsigned char)memory[address + (counter * 4) + 1] << 8) |
+                                                          ((unsigned char)memory[address + (counter * 4)]);
+            }
+        } 
+        else 
         {
             unsigned int traverse = length;
             unsigned int holder = address;
@@ -159,26 +173,12 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
                 unsigned int bit_count = 0;
                 for (int j = 0; j < 4; j++) 
                 {
-                if (first_be & (1 << j)) 
-                {
-                   bit_count++;
-                }
+                    if (first_be & (1 << j)) 
+                    {
+                        bit_count++;
+                    }
                 }
                 byte = byte_count - ((current_length - 1) * 4) - bit_count;
-            }
-        } 
-        else 
-        {
-            completionpackets[indexforcompletion++] = (0x4A << 24) | length;
-            completionpackets[indexforcompletion++] = (220 << 16) | byte_count;
-            completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | (address & 0x7F);
-
-            for (unsigned int counter = 0; counter < length; counter++) 
-            {
-                completionpackets[indexforcompletion++] = ((unsigned char)memory[address + (counter * 4) + 3] << 24) |
-                                                          ((unsigned char)memory[address + (counter * 4) + 2] << 16) |
-                                                          ((unsigned char)memory[address + (counter * 4) + 1] << 8) |
-                                                          ((unsigned char)memory[address + (counter * 4)]);
             }
         }
 
