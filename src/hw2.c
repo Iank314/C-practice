@@ -135,9 +135,9 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
             for (unsigned int i = 0; i < current_length; i++) 
             {
                 unsigned int data = ((unsigned char)memory[address] << 0) |
-                                    ((unsigned char)memory[address + 1] << 8) |
-                                    ((unsigned char)memory[address + 2] << 16) |
-                                    ((unsigned char)memory[address + 3] << 24);
+                                    ((unsigned char)memory[address + 1] << 4) |
+                                    ((unsigned char)memory[address + 2] << 8) |
+                                    ((unsigned char)memory[address + 3] << 16);
                 completionpackets[indexforcompletion++] = data;
                 address += 4;
             }
@@ -160,8 +160,6 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
 
         index += 3;
     }
-
-        completionpackets -= 4;
 
     return completionpackets;
 }
