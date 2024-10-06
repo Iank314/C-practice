@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <string.h>
+
 #include "hw2.h"
 
 void print_packet(unsigned int *packet) 
@@ -98,51 +98,60 @@ void store_values(unsigned int packets[], char *memory)
         packet_start += 3 + length;
     }
 }
-unsigned int* create_completion(unsigned int packet[], const char *memory) 
+unsigned int* create_completion(unsigned int packets[], const char *memory) 
 {
-    unsigned int length = (*packet & 0x3FF);
-    unsigned int address = packet[2];
-    unsigned int header_1 = packet[1];
-    unsigned int requester_id = (header_1 >> 16);
-    unsigned int tag = (header_1 >> 8) & 0xFF;
-    unsigned int byte_count = length * 4;
-    unsigned int remaining_bytes = byte_count;
+    int index = 0;
+    int indexforcompletion = 0;
+    unsigned int *completionpackets = (unsigned int*)malloc(1000000);
 
-    unsigned int *completions = (unsigned int*)malloc(1000000);
-    unsigned int index = 0;
+    while (((packets[index] >> 30) & 0x3) == 0x0)
+    {
 
-    while (remaining_bytes > 0) {
-        unsigned int current_length = ((address & 0x3FFF) + remaining_bytes) > 0x4000
-                                        ? ((0x4000 - (address & 0x3FFF)) / 4)
-                                        : (remaining_bytes / 4);
+        unsigned int length = packets[index] & 0x3FF;
+        unsigned int address = packets[index + 2];
+        unsigned int requester_id = (packets[index + 1] >> 16);
+        unsigned int tag = (packets[index + 1] >> 8) & 0xFF;
+        unsigned int byte_count = length * 4;
+        unsigned int remaining_bytes = byte_count;
 
-        completions[index++] = (0xA << 24) | current_length;
-        completions[index++] = (220 << 16) | remaining_bytes;
-        completions[index++] = (requester_id << 16) | (tag << 8) | (address & 0x7F);
-
-        for (unsigned int i = 0; i < current_length; i++) 
+        while (remaining_bytes > 0) 
         {
-            unsigned int data;
-            memcpy(&data, &memory[address], sizeof(data));
-            completions[index++] = data;
-            address += 4;
-        }
+            unsigned int current_length = ((address & 0x3FFF) + remaining_bytes) > 0x4000
+                                            ? ((0x4000 - (address & 0x3FFF)) / 4)
+                                            : (remaining_bytes / 4);
 
-        remaining_bytes -= current_length * 4;
+            completionpackets[indexforcompletion++] = (0xA << 24) | current_length;
+            completionpackets[indexforcompletion++] = (220 << 16) | remaining_bytes;
+            completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | (address & 0x7F);
 
-        if ((address & 0x3FFF) == 0) 
-        {
-            address += 4;
-        }
+            for (unsigned int i = 0; i < current_length; i++) 
+            {
+                unsigned int data = (unsigned char)memory[address] |
+                                    ((unsigned char)memory[address + 1] << 8) |
+                                    ((unsigned char)memory[address + 2] << 16) |
+                                    ((unsigned char)memory[address + 3] << 24);
+                completionpackets[indexforcompletion++] = data;
+                address += 4;
+            }
 
-        if ((address >> 22) == 0x0 || (address >> 22) == 0x1) 
-        {
-            if ((address & 0x3FFFFF) == 0)
-             {
-                break;
+            remaining_bytes -= current_length * 4;
+
+            if ((address & 0x3FFF) == 0) 
+            {
+                address += 4;
+            }
+
+            if ((address >> 22) == 0x0 || (address >> 22) == 0x1) 
+            {
+                if ((address & 0x3FFFFF) == 0) 
+                {
+                    break;
+                }
             }
         }
+
+        index += 3;
     }
 
-    return completions;
+    return completionpackets;
 }
