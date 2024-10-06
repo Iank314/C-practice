@@ -141,6 +141,11 @@ unsigned int* create_completion(unsigned int packets[], const char *memory) {
 
             remaining_bytes -= current_length * 4;
 
+            if ((address & 0x3FFF) == 0) 
+            {
+                address += 4;
+            }
+
             if ((address >> 22) == 0x0 || (address >> 22) == 0x1) 
             {
                 if ((address & 0x3FFFFF) == 0) 
@@ -153,5 +158,5 @@ unsigned int* create_completion(unsigned int packets[], const char *memory) {
         index += 3;
     }
 
-    return completionpackets;
+    return completionpackets + 4;
 }
