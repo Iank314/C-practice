@@ -98,12 +98,14 @@ void store_values(unsigned int packets[], char *memory)
         packet_start += 3 + length;
     }
 }
-unsigned int* create_completion(unsigned int packets[], const char *memory) { 
+unsigned int* create_completion(unsigned int packets[], const char *memory) 
+{
     int index = 0;
     int indexforcompletion = 0;
     unsigned int *completionpackets = (unsigned int*)malloc(1000000);
 
-    while (((packets[index] >> 30) & 0x3) == 0x0) {
+    while (((packets[index] >> 30) & 0x3) == 0x0) 
+    {
 
         unsigned int length = packets[index] & 0x3FF;
         unsigned int address = packets[index + 2];
@@ -126,9 +128,11 @@ unsigned int* create_completion(unsigned int packets[], const char *memory) {
                 current_length = remaining_bytes / 4;
             }
 
-            completionpackets[indexforcompletion++] = (0xA << 24) | (current_length + 4);  
-            completionpackets[indexforcompletion++] = (220 << 16) | (remaining_bytes + 4); 
-            completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | ((address & 0x7F) + 4); 
+            completionpackets[indexforcompletion++] = (0x25 << 25) | (current_length);
+
+            completionpackets[indexforcompletion++] = (220 << 16) | (remaining_bytes);
+
+            completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | ((address & 0x7F));
 
             for (unsigned int i = 0; i < current_length; i++) 
             {
@@ -149,7 +153,8 @@ unsigned int* create_completion(unsigned int packets[], const char *memory) {
 
             if ((address >> 22) == 0x0 || (address >> 22) == 0x1) 
             {
-                if ((address & 0x3FFFFF) == 0) {
+                if ((address & 0x3FFFFF) == 0) 
+                {
                     break;
                 }
             }
