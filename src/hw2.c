@@ -119,18 +119,18 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
         {
             unsigned int current_length;
 
-            if (((address & 0x3FFF) + remaining_bytes) > 0x4000) 
-            {
+            if (((address & 0x3FFF) + remaining_bytes) > 0x4000)
+             {
                 current_length = (0x4000 - (address & 0x3FFF)) / 4;
             } 
-            else
-             {
+            else 
+            {
                 current_length = remaining_bytes / 4;
             }
 
-            completionpackets[indexforcompletion++] = (0xA << 24) | current_length;
-            completionpackets[indexforcompletion++] = (220 << 16) | remaining_bytes;
-            completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | (address & 0x7F);
+            completionpackets[indexforcompletion++] = ((0xA << 24) | current_length) - 4;  
+            completionpackets[indexforcompletion++] = ((220 << 16) | remaining_bytes) - 4;  
+            completionpackets[indexforcompletion++] = ((requester_id << 16) | (tag << 8) | (address & 0x7F)) - 4;  
 
             for (unsigned int i = 0; i < current_length; i++) 
             {
@@ -149,8 +149,8 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
                 address += 4;
             }
 
-            if ((address >> 22) == 0x0 || (address >> 22) == 0x1)
-             {
+            if ((address >> 22) == 0x0 || (address >> 22) == 0x1) 
+            {
                 if ((address & 0x3FFFFF) == 0) 
                 {
                     break;
