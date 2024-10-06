@@ -98,14 +98,12 @@ void store_values(unsigned int packets[], char *memory)
         packet_start += 3 + length;
     }
 }
-unsigned int* create_completion(unsigned int packets[], const char *memory) 
-{
+unsigned int* create_completion(unsigned int packets[], const char *memory) {
     int index = 0;
     int indexforcompletion = 0;
     unsigned int *completionpackets = (unsigned int*)malloc(1000000);
 
-    while (((packets[index] >> 30) & 0x3) == 0x0) 
-    {
+    while (((packets[index] >> 30) & 0x3) == 0x0) {
 
         unsigned int length = packets[index] & 0x3FF;
         unsigned int address = packets[index + 2];
@@ -122,18 +120,15 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
             if (((address & 0x3FFF) + remaining_bytes) > 0x4000)
              {
                 current_length = (0x4000 - (address & 0x3FFF)) / 4;
-            } 
-            else 
-            {
+            } else {
                 current_length = remaining_bytes / 4;
             }
 
-            completionpackets[indexforcompletion++] = ((0xA << 24) | current_length) - 4;  
-            completionpackets[indexforcompletion++] = ((220 << 16) | remaining_bytes) - 4;  
-            completionpackets[indexforcompletion++] = ((requester_id << 16) | (tag << 8) | (address & 0x7F)) - 4;  
+            completionpackets[indexforcompletion++] = (0xA << 24) | (current_length - 4);
+            completionpackets[indexforcompletion++] = (220 << 16) | (remaining_bytes - 4);
+            completionpackets[indexforcompletion++] = (requester_id << 16) | (tag << 8) | ((address & 0x7F) - 4);
 
-            for (unsigned int i = 0; i < current_length; i++) 
-            {
+            for (unsigned int i = 0; i < current_length; i++) {
                 unsigned int data = ((unsigned char)memory[address] << 0) |
                                     ((unsigned char)memory[address + 1] << 8) |
                                     ((unsigned char)memory[address + 2] << 16) |
@@ -144,15 +139,12 @@ unsigned int* create_completion(unsigned int packets[], const char *memory)
 
             remaining_bytes -= current_length * 4;
 
-            if ((address & 0x3FFF) == 0) 
-            {
+            if ((address & 0x3FFF) == 0) {
                 address += 4;
             }
 
-            if ((address >> 22) == 0x0 || (address >> 22) == 0x1) 
-            {
-                if ((address & 0x3FFFFF) == 0) 
-                {
+            if ((address >> 22) == 0x0 || (address >> 22) == 0x1) {
+                if ((address & 0x3FFFFF) == 0) {
                     break;
                 }
             }
