@@ -108,8 +108,7 @@ unsigned int* create_completion(unsigned int packet[], const char *memory)
     unsigned int byte_count = length * 4;
     unsigned int remaining_bytes = byte_count;
 
-    unsigned int completions_count = length + 3;
-    unsigned int *completions = (unsigned int*)malloc(completions_count * sizeof(unsigned int));
+    unsigned int *completions = (unsigned int*)malloc(1000000);
     unsigned int index = 0;
 
     while (remaining_bytes > 0) {
