@@ -98,7 +98,8 @@ void store_values(unsigned int packets[], char *memory)
         packet_start += 3 + length;
     }
 }
-unsigned int* create_completion(unsigned int packets[], const char *memory) {
+unsigned int* create_completion(unsigned int packets[], const char *memory) 
+{
     int index = 0;
     int indexforcompletion = 0;
     unsigned int *completionpackets = (unsigned int*)malloc(1000000);
@@ -114,7 +115,8 @@ unsigned int* create_completion(unsigned int packets[], const char *memory) {
         unsigned int byte_count = length * 4;
         unsigned int remaining_bytes = byte_count;
 
-        while (remaining_bytes > 0) {
+        while (remaining_bytes > 0) 
+        {
             unsigned int current_length;
 
             if (((address & 0x3FFF) + remaining_bytes) > 0x4000) 
@@ -159,10 +161,7 @@ unsigned int* create_completion(unsigned int packets[], const char *memory) {
         index += 3;
     }
 
-    for (int i = 0; i < indexforcompletion; i++) 
-    {
-        completionpackets[i] -= 4;
-    }
+        completionpackets -= 4;
 
     return completionpackets;
 }
